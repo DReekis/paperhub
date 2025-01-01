@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Resource Hub</title>
+    <style>
+        :root {
+            --primary-color: #000000;
+            --secondary-color: #333333;
+            --accent-color: #FFD700;
+            --text-color: #FFFFFF;
+            --background-color: #F5F5F5;
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            background-color: var(--background-color);
+            color: var(--secondary-color);
+            padding-bottom: 60px;
+        }
+        header {
+            background-color: var(--primary-color);
+            color: var(--text-color);
+            text-align: center;
+            padding: 2rem 1rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            margin-bottom: 1rem;
+            font-size: 2.5rem;
+        }
+        .search-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+        #search-input {
+            width: 70%;
+            padding: 0.75rem;
+            border: none;
+            border-radius: 25px 0 0 25px;
+            font-size: 1rem;
+        }
+        #search-button {
+            padding: 0.75rem 1.5rem;
+            background-color: var(--accent-color);
+            color: var(--primary-color);
+            border: none;
+            border-radius: 0 25px 25px 0;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+        #search-button:hover {
+            background-color: #FFC700;
+        }
+        main {
+            padding: 2rem 1rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .page {
+            display: none;
+        }
+        .page.active {
+            display: block;
+        }
+        h2 {
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            color: var(--primary-color);
+        }
+        .filter-container, .form-container {
+            display: grid;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            background-color: #FFFFFF;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        @media (min-width: 768px) {
+            .filter-container {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            .form-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        .filter-item, .form-item {
+            display: flex;
+            flex-direction: column;
+        }
+        .form-item:last-child {
+            grid-column: 1 / -1;
+            justify-self: start;
+        }
+        label {
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+            color: var(--secondary-color);
+        }
+        select, input[type="text"], input[type="file"] {
+            padding: 0.75rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+        select:focus, input[type="text"]:focus, input[type="file"]:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+        button {
+            padding: 0.75rem 1.5rem;
+            background-color: var(--primary-color);
+            color: var(--text-color);
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: var(--secondary-color);
+        }
+        .resource-list {
+            display: grid;
+            gap: 1.5rem;
+        }
+        @media (min-width: 768px) {
+            .resource-list {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        .resource-item {
+            background-color: #FFFFFF;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+        .resource-item:hover {
+            transform: translateY(-5px);
+        }
+        .resource-item h3 {
+            margin-bottom: 0.5rem;
+            color: var(--primary-color);
+        }
+        .resource-item p {
+            margin-bottom: 1rem;
+            color: var(--secondary-color);
+        }
+        nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: var(--primary-color);
+            display: flex;
+            justify-content: space-around;
+            padding: 0.75rem;
+            box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
+        }
+        nav a {
+            color: var(--text-color);
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+        }
+        nav a.active {
+            background-color: var(--secondary-color);
+        }
+        .custom-select {
+            position: relative;
+            width: 100%;
+        }
+        .select-selected {
+            background-color: white;
+            padding: 0.75rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .select-items {
+            position: absolute;
+            background-color: white;
+            top: 100%;
+            left: 0;
+            right: 0;
+            z-index: 99;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            border-top: none;
+            border-radius: 0 0 4px 4px;
+        }
+        .select-hide {
+            display: none;
+        }
+        .select-items div {
+            padding: 0.5rem;
+            cursor: pointer;
+        }
+        .select-items div:hover {
+            background-color: #f1f1f1;
+        }
+        .select-search {
+            width: calc(100% - 1rem);
+            padding: 0.5rem;
+            margin: 0.5rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .no-results {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 2rem;
+            background-color: #f8f8f8;
+            border-radius: 8px;
+            font-style: italic;
+            color: #666;
+        }
+        .filter-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+        #show-filters-btn {
+            display: none;
+            width: 100%;
+            margin-bottom: 1rem;
+        }
+        #reset-filters-btn {
+            grid-column: 1 / -1;
+            justify-self: end;
+            background-color: var(--accent-color);
+            color: var(--primary-color);
+        }
+        #reset-filters-btn:hover {
+            background-color: #FFC700;
+        }
+        @media (max-width: 767px) {
+            #show-filters-btn {
+                display: block;
+            }
+            .filter-container {
+                display: none;
+            }
+            .filter-container.show {
+                display: grid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Student Resource Hub</h1>
+        <div class="search-container">
+            <input type="text" id="search-input" placeholder="Search resources...">
+            <button id="search-button">Search</button>
+        </div>
+    </header>
+
+    <main>
+        <div id="home-page" class="page active">
+            <h2>Home Page</h2>
+            <button id="show-filters-btn">Filter</button>
+            <div class="filter-container">
+                <div class="filter-item">
+                    <label for="college">College/University/Board</label>
+                    <div class="custom-select" id="college-select">
+                        <div class="select-selected">Select</div>
+                        <div class="select-items select-hide">
+                            <input type="text" class="select-search" placeholder="Search...">
+                            <div data-value="">Select</div>
+                            <div data-value="mit">MIT</div>
+                            <div data-value="harvard">Harvard</div>
+                            <div data-value="stanford">Stanford</div>
+                            <div data-value="cbse">CBSE</div>
+                            <div data-value="icse">ICSE</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="filter-item">
+                    <label for="trade">Trade</label>
+                    <div class="custom-select" id="trade-select">
+                        <div class="select-selected">Select</div>
+                        <div class="select-items select-hide">
+                            <input type="text" class="select-search" placeholder="Search...">
+                            <div data-value="">Select</div>
+                            <div data-value="cs">Computer Science</div>
+                            <div data-value="ee">Electrical Engineering</div>
+                            <div data-value="me">Mechanical Engineering</div>
+                            <div data-value="ce">Civil Engineering</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="filter-item">
+                    <label for="semester">Semester</label>
+                    <div class="custom-select" id="semester-select">
+                        <div class="select-selected">Select</div>
+                        <div class="select-items select-hide">
+                            <input type="text" class="select-search" placeholder="Search...">
+                            <div data-value="">Select</div>
+                            <div data-value="1">1</div>
+                            <div data-value="2">2</div>
+                            <div data-value="3">3</div>
+                            <div data-value="4">4</div>
+                            <div data-value="5">5</div>
+                            <div data-value="6">6</div>
+                            <div data-value="7">7</div>
+                            <div data-value="8">8</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="filter-item">
+                    <label for="type">Type</label>
+                    <div class="custom-select" id="type-select">
+                        <div class="select-selected">Select</div>
+                        <div class="select-items select-hide">
+                            <input type="text" class="select-search" placeholder="Search...">
+                            <div data-value="">Select</div>
+                            <div data-value="question-paper">Question Paper</div>
+                            <div data-value="notes">Notes</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="filter-item">
+                    <label for="subject">Subject</label>
+                    <div class="custom-select" id="subject-select">
+                        <div class="select-selected">Select</div>
+                        <div class="select-items select-hide">
+                            <input type="text" class="select-search" placeholder="Search...">
+                            <div data-value="">Select</div>
+                            <div data-value="math">Mathematics</div>
+                            <div data-value="physics">Physics</div>
+                            <div data-value="chemistry">Chemistry</div>
+                            <div data-value="programming">Programming</div>
+                            <div data-value="data-structures">Data Structures</div>
+                        </div>
+                    </div>
+                </div>
+                <button id="reset-filters-btn">Reset Filters</button>
+            </div>
+            <div class="resource-list" id="resource-list">
+                <!-- Resource items will be dynamically added here -->
+            </div>
+        </div>
+
+        <div id="upload-page" class="page">
+            <h2>Upload Document</h2>
+            <form id="upload-form" class="form-container">
+                <div class="form-item">
+                    <label for="upload-type">Type</label>
+                    <div class="custom-select" id="upload-type-select">
+                        <div class="select-selected">Select</div>
+                        <div class="select-items select-hide">
+                            <input type="text" class="select-search" placeholder="Search...">
+                            <div data-value="">Select</div>
+                            <div data-value="question-paper">Question Paper</div>
+                            <div data-value="notes">Notes</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-item">
+                    <label for="upload-college">College/University/Board</label>
+                    <div class="custom-select" id="upload-college-select">
+                        <div class="select-selected">Select</div>
+                        <div class="select-items select-hide">
+                            <input type="text" class="select-search" placeholder="Search...">
+                            <div data-value="">Select</div>
+                            <div data-value="mit">MIT</div>
+                            <div data-value="harvard">Harvard</div>
+                            <div data-value="stanford">Stanford</div>
+                            <div data-value="cbse">CBSE</div>
+                            <div data-value="icse">ICSE</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-item">
+                    <label for="upload-semester">Semester</label>
+                    <div class="custom-select" id="upload-semester-select">
+                        <div class="select-selected">Select</div>
+                        <div class="select-items select-hide">
+                            <input type="text" class="select-search" placeholder="Search...">
+                            <div data-value="">Select</div>
+                            <div data-value="1">1</div>
+                            <div data-value="2">2</div>
+                            <div data-value="3">3</div>
+                            <div data-value="4">4</div>
+                            <div data-value="5">5</div>
+                            <div data-value="6">6</div>
+                            <div data-value="7">7</div>
+                            <div data-value="8">8</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-item">
+                    <label for="upload-trade">Trade</label>
+                    <div class="custom-select" id="upload-trade-select">
+                        <div class="select-selected">Select</div>
+                        <div class="select-items select-hide">
+                            <input type="text" class="select-search" placeholder="Search...">
+                            <div data-value="">Select</div>
+                            <div data-value="cs">Computer Science</div>
+                            <div data-value="ee">Electrical Engineering</div>
+                            <div data-value="me">Mechanical Engineering</div>
+                            <div data-value="ce">Civil Engineering</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-item">
+                    <label for="paper-name">Paper Name</label>
+                    <input type="text" id="paper-name" required>
+                </div>
+                <div class="form-item">
+                    <label for="paper-code">Paper Code</label>
+                    <input type="text" id="paper-code" required>
+                </div>
+                <div class="form-item">
+                    <label for="document-upload">Document Upload</label>
+                    <input type="file" id="document-upload" required>
+                </div>
+                <div class="form-item">
+                    <button type="submit">Upload</button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <nav>
+        <a href="#" id="home-link" class="active">Home</a>
+        <a href="#" id="upload-link">Upload</a>
+    </nav>
+
+    <script>
+        // Navigation
+        const homeLink = document.getElementById('home-link');
+        const uploadLink = document.getElementById('upload-link');
+        const homePage = document.getElementById('home-page');
+        const uploadPage = document.getElementById('upload-page');
+
+        homeLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            homePage.classList.add('active');
+            uploadPage.classList.remove('active');
+            homeLink.classList.add('active');
+            uploadLink.classList.remove('active');
+        });
+
+        uploadLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            uploadPage.classList.add('active');
+            homePage.classList.remove('active');
+            uploadLink.classList.add('active');
+            homeLink.classList.remove('active');
+        });
+
+        // Search functionality
+        const searchInput = document.getElementById('search-input');
+        const searchButton = document.getElementById('search-button');
+
+        searchButton.addEventListener('click', () => {
+            const searchTerm = searchInput.value.toLowerCase();
+            const resources = document.querySelectorAll('.resource-item');
+            resources.forEach(resource => {
+                const title = resource.querySelector('h3').textContent.toLowerCase();
+                const description = resource.querySelector('p').textContent.toLowerCase();
+                if (title.includes(searchTerm) || description.includes(searchTerm)) {
+                    resource.style.display = 'block';
+                } else {
+                    resource.style.display = 'none';
+                }
+            });
+        });
+
+        // Upload form submission
+        const uploadForm = document.getElementById('upload-form');
+
+        uploadForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const formData = new FormData(uploadForm);
+            console.log('Form data:', Object.fromEntries(formData));
+            // Here you would typically send the data to your backend
+            alert('Document uploaded successfully!');
+            uploadForm.reset();
+        });
+
+        // Sample resource data (replace with actual data from your backend)
+        const sampleResources = [
+            { title: 'Introduction to Programming', type: 'Notes', subject: 'Computer Science', college: 'MIT' },
+            { title: 'Calculus I Final Exam', type: 'Question Paper', subject: 'Mathematics', college: 'Harvard' },
+            { title: 'Data Structures and Algorithms', type: 'Notes', subject: 'Computer Science', college: 'Stanford' },
+            { title: 'Physics Midterm', type: 'Question Paper', subject: 'Physics', college: 'MIT' },
+            { title: 'Organic Chemistry Lab Manual', type: 'Notes', subject: 'Chemistry', college: 'Harvard' },
+            { title: 'Digital Logic Design', type: 'Question Paper', subject: 'Electrical Engineering', college: 'Stanford' },
+        ];
+
+        // Function to render resources
+        function renderResources(resources) {
+            const resourceList = document.getElementById('resource-list');
+            resourceList.innerHTML = '';
+            if (resources.length === 0) {
+                const noResults = document.createElement('div');
+                noResults.classList.add('no-results');
+                noResults.textContent = 'No resources found. Please try different filters.';
+                resourceList.appendChild(noResults);
+            } else {
+                resources.forEach(resource => {
+                    const resourceItem = document.createElement('div');
+                    resourceItem.classList.add('resource-item');
+                    resourceItem.innerHTML = `
+                        <h3>${resource.title}</h3>
+                        <p>${resource.type} - ${resource.subject} - ${resource.college}</p>
+                        <button>Download</button>
+                    `;
+                    resourceList.appendChild(resourceItem);
+                });
+            }
+        }
+
+        // Initial render of resources
+        renderResources(sampleResources);
+
+        // Custom select functionality
+        function initCustomSelects() {
+            const customSelects = document.querySelectorAll('.custom-select');
+            customSelects.forEach(select => {
+                const selectSelected = select.querySelector('.select-selected');
+                const selectItems = select.querySelector('.select-items');
+                const searchInput = selectItems.querySelector('.select-search');
+                const options = selectItems.querySelectorAll('div:not(.select-search)');
+
+                selectSelected.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    closeAllSelect(this);
+                    selectItems.classList.toggle('select-hide');
+                    this.classList.toggle('select-arrow-active');
+                });
+
+                options.forEach(option => {
+                    option.addEventListener('click', function(e) {
+                        selectSelected.innerHTML = this.innerHTML;
+                        selectSelected.setAttribute('data-value', this.getAttribute('data-value'));
+                        closeAllSelect(selectSelected);
+                        // Hide the select-items after selection
+                        selectItems.classList.add('select-hide');
+                        // Trigger change event for filtering
+                        const changeEvent = new Event('change');
+                        select.dispatchEvent(changeEvent);
+                    });
+                });
+
+                searchInput.addEventListener('input', function() {
+                    const filter = this.value.toLowerCase();
+                    options.forEach(option => {
+                        const txtValue = option.textContent || option.innerText;
+                        if (txtValue.toLowerCase().indexOf(filter) > -1) {
+                            option.style.display = "";
+                        } else {
+                            option.style.display = "none";
+                        }
+                    });
+                });
+            });
+
+            document.addEventListener('click', closeAllSelect);
+        }
+
+        function closeAllSelect(elmnt) {
+            const selectItems = document.getElementsByClassName('select-items');
+            const selectSelected = document.getElementsByClassName('select-selected');
+            for (let i = 0; i < selectSelected.length; i++) {
+                if (elmnt != selectSelected[i]) {
+                    selectSelected[i].classList.remove('select-arrow-active');
+                }
+            }
+            for (let i = 0; i < selectItems.length; i++) {
+                if (elmnt != selectItems[i] && !elmnt.closest('.custom-select')) {
+                    selectItems[i].classList.add('select-hide');
+                }
+            }
+        }
+
+        // Initialize custom selects
+        initCustomSelects();
+
+        // Update filter functionality
+        const filterSelects = document.querySelectorAll('.custom-select');
+        filterSelects.forEach(select => {
+            select.addEventListener('change', () => {
+                const filters = Array.from(filterSelects).reduce((acc, select) => {
+                    const selectedValue = select.querySelector('.select-selected').getAttribute('data-value');
+                    if (selectedValue) {
+                        acc[select.id.replace('-select', '')] = selectedValue;
+                    }
+                    return acc;
+                }, {});
+
+                const filteredResources = sampleResources.filter(resource => {
+                    return Object.entries(filters).every(([key, value]) => {
+                        return resource[key] === value;
+                    });
+                });
+
+                renderResources(filteredResources);
+            });
+        });
+
+        // Filter and reset functionality for mobile
+        const showFiltersBtn = document.getElementById('show-filters-btn');
+        const resetFiltersBtn = document.getElementById('reset-filters-btn');
+        const filterContainer = document.querySelector('.filter-container');
+
+        showFiltersBtn.addEventListener('click', () => {
+            filterContainer.classList.toggle('show');
+            showFiltersBtn.textContent = filterContainer.classList.contains('show') ? 'Hide Filters' : 'Filter';
+        });
+
+        resetFiltersBtn.addEventListener('click', () => {
+            // Reset all custom selects
+            const customSelects = document.querySelectorAll('.custom-select');
+            customSelects.forEach(select => {
+                const selectSelected = select.querySelector('.select-selected');
+                selectSelected.innerHTML = 'Select';
+                selectSelected.setAttribute('data-value', '');
+            });
+
+            // Trigger change event to update the resource list
+            const changeEvent = new Event('change');
+            customSelects[0].dispatchEvent(changeEvent);
+        });
+    </script>
+</body>
+</html>
+
