@@ -3,783 +3,692 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Resource Hub</title>
+    <title>Previous Year Questions</title>
     <style>
-        :root {
-            --primary-color: #000000;
-            --secondary-color: #333333;
-            --accent-color: #FFD700;
-            --text-color: #FFFFFF;
-            --background-color: #F5F5F5;
-        }
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
         }
+
         body {
-            font-family: 'Arial', sans-serif;
+            font-family: Arial, sans-serif;
             line-height: 1.6;
-            background-color: var(--background-color);
-            color: var(--secondary-color);
-            padding-bottom: 60px;
+            color: #333;
+            background-color: #f4f4f4;
         }
-        header {
-            background-color: var(--primary-color);
-            color: var(--text-color);
-            text-align: center;
-            padding: 2rem 1rem;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-        h1 {
-            margin-bottom: 1rem;
-            font-size: 2.5rem;
-        }
-        .search-container {
-            display: flex;
-            justify-content: center;
-            margin-top: 1rem;
-        }
-        #search-input {
-            width: 70%;
-            padding: 0.75rem;
-            border: none;
-            border-radius: 25px 0 0 25px;
-            font-size: 1rem;
-        }
-        #search-button {
-            padding: 0.75rem 1.5rem;
-            background-color: var(--accent-color);
-            color: var(--primary-color);
-            border: none;
-            border-radius: 0 25px 25px 0;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: bold;
-            transition: background-color 0.3s ease;
-        }
-        #search-button:hover {
-            background-color: #FFC700;
-        }
-        main {
-            padding: 2rem 1rem;
+
+        .container {
             max-width: 1200px;
             margin: 0 auto;
+            padding: 20px;
         }
-        .page {
-            display: none;
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
         }
-        .page.active {
-            display: block;
+
+        .search-filter-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
         }
-        h2 {
-            font-size: 2rem;
-            margin-bottom: 1.5rem;
-            color: var(--primary-color);
+
+        #search-input {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
         }
-        .filter-container, .form-container {
-            display: grid;
-            gap: 1rem;
-            margin-bottom: 2rem;
-            background-color: #FFFFFF;
-            padding: 1.5rem;
+
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .filter-button, #upload-button {
+            padding: 10px;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .filter-button:hover, #upload-button:hover {
+            background-color: #f0f0f0;
+        }
+
+        #upload-button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+        }
+
+        #upload-button:hover {
+            background-color: #45a049;
+        }
+
+        .question-card {
+            background-color: #fff;
             border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-        @media (min-width: 768px) {
-            .filter-container {
-                grid-template-columns: repeat(3, 1fr);
-            }
-            .form-container {
-                grid-template-columns: repeat(2, 1fr);
-            }
+
+        .question-card h3 {
+            margin-bottom: 10px;
         }
-        .filter-item, .form-item {
+
+        .question-card p {
+            margin-bottom: 5px;
+            color: #666;
+        }
+
+        .question-card .buttons {
+            margin-top: 15px;
+        }
+
+        .question-card button {
+            padding: 8px 16px;
+            margin-right: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .question-card .view-btn {
+            background-color: #f0f0f0;
+            color: #333;
+        }
+
+        .question-card .download-btn {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+            border-radius: 8px;
+        }
+
+        #filter-search {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        #filter-list {
+            list-style-type: none;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        #filter-list li {
+            padding: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        #filter-list li:hover {
+            background-color: #f0f0f0;
+        }
+
+        #upload-form {
+            display: grid;
+            gap: 15px;
+        }
+
+        .form-group {
             display: flex;
             flex-direction: column;
         }
-        .form-item:last-child {
-            grid-column: 1 / -1;
-            justify-self: start;
+
+        .form-group label {
+            margin-bottom: 5px;
         }
-        label {
-            margin-bottom: 0.5rem;
-            font-weight: bold;
-            color: var(--secondary-color);
-        }
-        select, input[type="text"], input[type="file"], input[type="number"] {
-            padding: 0.75rem;
-            border: 1px solid #ccc;
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 8px;
+            border: 1px solid #ddd;
             border-radius: 4px;
-            font-size: 1rem;
+        }
+
+        .close-btn {
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close-btn:hover {
+            color: #000;
+        }
+
+        #success-message {
+            display: none;
+            background-color: #4CAF50;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 5px;
+            z-index: 1000;
+        }
+
+        #reset-filters {
+            background-color: #f44336;
+            color: white;
+            border: none;
+        }
+
+        #reset-filters:hover {
+            background-color: #d32f2f;
+        }
+
+        @media (max-width: 768px) {
+            .search-filter-container {
+                flex-direction: column;
+            }
+
+            .filter-buttons {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .filter-button, #upload-button {
+                width: 100%;
+            }
+
+            .modal-content {
+                width: 95%;
+                margin: 10% auto;
+            }
+        }
+
+        .file-upload {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
             transition: border-color 0.3s ease;
         }
-        select:focus, input[type="text"]:focus, input[type="file"]:focus, input[type="number"]:focus {
-            outline: none;
-            border-color: var(--accent-color);
+
+        .file-upload.dragover {
+            border-color: #4CAF50;
         }
-        button {
-            padding: 0.75rem 1.5rem;
-            background-color: var(--primary-color);
-            color: var(--text-color);
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: bold;
-            transition: background-color 0.3s ease;
-        }
-        button:hover {
-            background-color: var(--accent-color);
-            color: #000000;
-        }
-        .resource-list {
-            display: grid;
-            gap: 1.5rem;
-        }
-        @media (min-width: 768px) {
-            .resource-list {
-                grid-template-columns: repeat(3, 1fr);
-            }
-        }
-        .resource-item {
-            background-color: #FFFFFF;
-            padding: 1.5rem;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease;
-        }
-        .resource-item:hover {
-            transform: translateY(-5px);
-        }
-        .resource-item h3 {
-            margin-bottom: 0.5rem;
-            color: var(--primary-color);
-        }
-        .resource-item p {
-            margin-bottom: 1rem;
-            color: var(--secondary-color);
-        }
-        nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background-color: var(--primary-color);
-            display: flex;
-            justify-content: space-around;
-            padding: 0.75rem;
-            box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
-        }
-        nav a {
-            color: var(--text-color);
-            text-decoration: none;
-            padding: 0.5rem 1rem;
-            border-radius: 4px;
-            transition: background-color 0.3s ease;
-        }
-        nav a.active {
-            background-color: var(--accent-color);
-            color: #000000;
-        }
-        .custom-select {
-            position: relative;
-            width: 100%;
-        }
-        .select-selected {
-            background-color: white;
-            padding: 0.75rem;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        .select-items {
-            position: absolute;
-            background-color: white;
-            top: 100%;
-            left: 0;
-            right: 0;
-            z-index: 99;
-            max-height: 200px;
-            overflow-y: auto;
-            border: 1px solid #ccc;
-            border-top: none;
-            border-radius: 0 0 4px 4px;
-        }
-        .select-hide {
+
+        .file-upload input[type="file"] {
             display: none;
         }
-        .select-items div {
-            padding: 0.5rem;
-            cursor: pointer;
-        }
-        .select-items div:hover {
-            background-color: #f1f1f1;
-        }
-        .select-search {
-            width: calc(100% - 1rem);
-            padding: 0.5rem;
-            margin: 0.5rem;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-        .no-results {
-            grid-column: 1 / -1;
-            text-align: center;
-            padding: 2rem;
-            background-color: #f8f8f8;
-            border-radius: 8px;
-            font-style: italic;
-            color: #666;
-        }
-        .filter-buttons {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 1rem;
-        }
-        #show-filters-btn {
-            display: none;
-            width: 100%;
-            margin-bottom: 1rem;
-        }
-        #reset-filters-btn {
-            grid-column: 1 / -1;
-            justify-self: end;
-            background-color: var(--accent-color);
-            color: var(--primary-color);
-        }
-        #reset-filters-btn:hover {
-            background-color: #FFC700;
-        }
-        @media (max-width: 767px) {
-            #show-filters-btn {
-                display: block;
-            }
-            .filter-container {
-                display: none;
-            }
-            .filter-container.show {
-                display: grid;
-            }
-        }
-        .upload-progress {
-            width: 100%;
-            background-color: #f0f0f0;
-            border-radius: 4px;
-            margin-top: 1rem;
-            overflow: hidden;
-            display: none;
-        }
-        .progress-bar {
-            width: 0%;
-            height: 20px;
-            background-color: var(--accent-color);
-            text-align: center;
-            line-height: 20px;
+
+        .file-upload label {
+            padding: 10px 20px;
+            background-color: #4CAF50;
             color: white;
-            transition: width 0.3s ease;
-        }
-        .drag-drop-area {
-            border: 2px dashed #ccc;
             border-radius: 4px;
-            padding: 2rem;
-            text-align: center;
             cursor: pointer;
             transition: background-color 0.3s ease;
         }
-        .drag-drop-area:hover, .drag-drop-area.dragover {
-            background-color: #f0f0f0;
+
+        .file-upload label:hover {
+            background-color: #45a049;
         }
-        .upload-icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-        }
-        #file-info {
-            margin-top: 1rem;
-            font-style: italic;
-        }
-        .file-info-container {
+
+        .file-preview {
+            margin-top: 20px;
+            max-width: 100%;
             display: none;
-            align-items: center;
-            justify-content: space-between;
-            background-color: #f0f0f0;
-            padding: 0.5rem 1rem;
-            border-radius: 4px;
-            margin-top: 1rem;
         }
-        .file-info-container button {
-            padding: 0.25rem 0.5rem;
-            font-size: 0.875rem;
+
+        .file-preview img {
+            max-width: 100%;
+            max-height: 300px;
+            object-fit: contain;
+        }
+
+        .file-preview iframe {
+            width: 100%;
+            height: 300px;
+            border: none;
+        }
+
+        .file-actions {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .file-actions button {
+            padding: 5px 10px;
+            background-color: #f0f0f0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .file-actions button:hover {
+            background-color: #e0e0e0;
+        }
+
+        .file-name {
+            margin-top: 10px;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
-    <header>
-        <h1>Student Resource Hub</h1>
-        <div class="search-container">
-            <input type="text" id="search-input" placeholder="Search resources...">
-            <button id="search-button">Search</button>
-        </div>
-    </header>
-
-    <main>
-        <div id="home-page" class="page active">
-            <h2>Home Page</h2>
-            <button id="show-filters-btn">Filter</button>
-            <div class="filter-container">
-                <div class="filter-item">
-                    <label for="college">College/University/Board</label>
-                    <div class="custom-select" id="college-select">
-                        <div class="select-selected">Select</div>
-                        <div class="select-items select-hide">
-                            <input type="text" class="select-search" placeholder="Search...">
-                            <div data-value="">Select</div>
-                            <div data-value="mit">MIT</div>
-                            <div data-value="harvard">Harvard</div>
-                            <div data-value="stanford">Stanford</div>
-                            <div data-value="cbse">CBSE</div>
-                            <div data-value="icse">ICSE</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="filter-item">
-                    <label for="trade">Trade</label>
-                    <div class="custom-select" id="trade-select">
-                        <div class="select-selected">Select</div>
-                        <div class="select-items select-hide">
-                            <input type="text" class="select-search" placeholder="Search...">
-                            <div data-value="">Select</div>
-                            <div data-value="cs">Computer Science</div>
-                            <div data-value="ee">Electrical Engineering</div>
-                            <div data-value="me">Mechanical Engineering</div>
-                            <div data-value="ce">Civil Engineering</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="filter-item">
-                    <label for="semester">Semester</label>
-                    <div class="custom-select" id="semester-select">
-                        <div class="select-selected">Select</div>
-                        <div class="select-items select-hide">
-                            <input type="text" class="select-search" placeholder="Search...">
-                            <div data-value="">Select</div>
-                            <div data-value="1">1</div>
-                            <div data-value="2">2</div>
-                            <div data-value="3">3</div>
-                            <div data-value="4">4</div>
-                            <div data-value="5">5</div>
-                            <div data-value="6">6</div>
-                            <div data-value="7">7</div>
-                            <div data-value="8">8</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="filter-item">
-                    <label for="type">Type</label>
-                    <div class="custom-select" id="type-select">
-                        <div class="select-selected">Select</div>
-                        <div class="select-items select-hide">
-                            <input type="text" class="select-search" placeholder="Search...">
-                            <div data-value="">Select</div>
-                            <div data-value="question-paper">Question Paper</div>
-                            <div data-value="notes">Notes</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="filter-item">
-                    <label for="subject">Subject</label>
-                    <div class="custom-select" id="subject-select">
-                        <div class="select-selected">Select</div>
-                        <div class="select-items select-hide">
-                            <input type="text" class="select-search" placeholder="Search...">
-                            <div data-value="">Select</div>
-                            <div data-value="math">Mathematics</div>
-                            <div data-value="physics">Physics</div>
-                            <div data-value="chemistry">Chemistry</div>
-                            <div data-value="programming">Programming</div>
-                            <div data-value="data-structures">Data Structures</div>
-                        </div>
-                    </div>
-                </div>
-                <button id="reset-filters-btn">Reset Filters</button>
+    <div class="container">
+        <h1>Previous Year Questions</h1>
+        
+        <div class="search-filter-container">
+            <input type="text" id="search-input" placeholder="Search for college, subject, or course code">
+            <div class="filter-buttons">
+                <button id="reset-filters" class="filter-button">Reset Filters</button>
+                <button id="college-filter" class="filter-button">Select College</button>
+                <button id="subject-filter" class="filter-button">Select Subject</button>
+                <button id="code-filter" class="filter-button">Select Course Code</button>
             </div>
-            <div class="resource-list" id="resource-list">
-                <!-- Resource items will be dynamically added here -->
-            </div>
+            <button id="upload-button">Upload</button>
         </div>
 
-        <div id="upload-page" class="page">
-            <h2>Upload Document</h2>
-            <form id="upload-form" method="POST" enctype="multipart/form-data" action="/upload">
-                <div class="form-item">
-                    <label for="type">Type</label>
-                    <select name="type" id="type" required>
-                        <option value="notes">Notes</option>
-                        <option value="question-paper">Question Paper</option>
-                    </select>
-                </div>
-                <div class="form-item">
-                    <label for="paper-name">Paper Name</label>
-                    <input type="text" id="paper-name" name="paper_name" required>
-                </div>
-                <div class="form-item">
-                    <label for="paper-code">Paper Code</label>
-                    <input type="text" id="paper-code" name="paper_code" required>
-                </div>
-                <div class="form-item">
-                    <label for="paper-year">Year</label>
-                    <input type="number" id="paper-year" name="paper_year" required>
-                </div>
-                <div class="form-item">
-                    <label for="college">College</label>
+        <div id="questions-container"></div>
+    </div>
+
+    <div id="filter-modal" class="modal">
+        <div class="modal-content">
+            <h2 id="filter-modal-title"></h2>
+            <input type="text" id="filter-search" placeholder="Search...">
+            <ul id="filter-list"></ul>
+        </div>
+    </div>
+
+    <div id="upload-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeUploadModal()">&times;</span>
+            <h2>Upload New Document</h2>
+            <form id="upload-form">
+                <div class="form-group">
+                    <label for="college">College Name</label>
                     <input type="text" id="college" name="college" required>
                 </div>
-                <div class="form-item">
+                <div class="form-group">
+                    <label for="semester">Semester</label>
+                    <select id="semester" name="semester" required>
+                        <option value="">Select Semester</option>
+                        <option value="1st">1st</option>
+                        <option value="2nd">2nd</option>
+                        <option value="3rd">3rd</option>
+                        <!-- Add remaining options -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="year">Year of Exam</label>
+                    <input type="number" id="year" name="year" required>
+                </div>
+                <div class="form-group">
+                    <label for="course-name">Course Name</label>
+                    <input type="text" id="course-name" name="course_name" required>
+                </div>
+                <div class="form-group">
+                    <label for="course-code">Course Code</label>
+                    <input type="text" id="course-code" name="course_code" required>
+                </div>
+                <div class="form-group">
+                    <label for="document-type">Document Type</label>
+                    <select id="document-type" name="type" required>
+                        <option value="">Select Type</option>
+                        <option value="Question Paper">Question Paper</option>
+                        <option value="Notes">Notes</option>
+                    </select>
+                </div>
+                <div class="form-group">
                     <label for="trade">Trade</label>
                     <input type="text" id="trade" name="trade" required>
                 </div>
-                <div class="form-item">
-                    <label for="semester">Semester</label>
-                    <input type="text" id="semester" name="semester" required>
+                <div class="form-group file-upload">
+                    <label for="file-upload">Upload File</label>
+                    <input type="file" id="file-upload" name="file-upload" accept=".pdf" required>
                 </div>
-                <div class="form-item">
-                    <label for="document-upload">Upload File</label>
-                    <input type="file" id="document-upload" name="file" required accept=".jpg,.jpeg,.pdf">
-                </div>
-                <button type="submit">Upload</button>
+                <div class="file-preview" id="file-preview"></div>
+                <button type="submit">Upload Document</button>
             </form>
             
-            
         </div>
-    </main>
+    </div>
 
-    <nav>
-        <a href="#" id="home-link" class="active">Home</a>
-        <a href="#" id="upload-link">Upload</a>
-    </nav>
+    <div id="success-message">
+        <h2>You are a hero now!</h2>
+        <p>Your document has been successfully uploaded.</p>
+    </div>
 
     <script>
-        // Navigation
-        const homeLink = document.getElementById('home-link');
-        const uploadLink = document.getElementById('upload-link');
-        const homePage = document.getElementById('home-page');
-        const uploadPage = document.getElementById('upload-page');
+        let questions = [];
+        let colleges = [];
+        let subjects = [];
+        let courseCodes = [];
 
-        homeLink.addEventListener('click', (e) => {
-            e.preventDefault();
-            homePage.classList.add('active');
-            uploadPage.classList.remove('active');
-            homeLink.classList.add('active');
-            uploadLink.classList.remove('active');
-        });
+        let collegeFilter = '';
+        let subjectFilter = '';
+        let codeFilter = '';
 
-        uploadLink.addEventListener('click', (e) => {
-            e.preventDefault();
-            uploadPage.classList.add('active');
-            homePage.classList.remove('active');
-            uploadLink.classList.add('active');
-            homeLink.classList.remove('active');
-        });
+        function renderQuestions(filteredQuestions) {
+            const container = document.getElementById('questions-container');
+            container.innerHTML = '';
 
-        // Search functionality
-        const searchInput = document.getElementById('search-input');
-        const searchButton = document.getElementById('search-button');
-
-        searchButton.addEventListener('click', () => {
-            const searchTerm = searchInput.value.toLowerCase();
-            const resources = document.querySelectorAll('.resource-item');
-            resources.forEach(resource => {
-                const title = resource.querySelector('h3').textContent.toLowerCase();
-                const description = resource.querySelector('p').textContent.toLowerCase();
-                if (title.includes(searchTerm) || description.includes(searchTerm)) {
-                    resource.style.display = 'block';
-                } else {
-                    resource.style.display = 'none';
-                }
+            filteredQuestions.forEach(q => {
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                card.innerHTML = `
+                    <h3>${q.subject} (${q.code})</h3>
+                    <p>College: ${q.college}</p>
+                    <p>Year: ${q.year}, Semester: ${q.semester}</p>
+                    <p>Type: ${q.type}</p>
+                    <div class="buttons">
+                        <button class="view-btn" onclick="viewContent('${q.content}')">View</button>
+                        <button class="download-btn" onclick="downloadContent('${q.content}')">Download</button>
+                    </div>
+                `;
+                container.appendChild(card);
             });
-        });
+        }
 
-        // Enhanced file upload functionality
-        const dragDropArea = document.getElementById('drag-drop-area');
-        const fileInput = document.getElementById('document-upload');
-        const fileInfo = document.getElementById('file-info');
-        const fileInfoContainer = document.querySelector('.file-info-container');
-        const changeFileBtn = document.getElementById('change-file-btn');
-        const uploadProgress = document.querySelector('.upload-progress');
-        const progressBar = document.querySelector('.progress-bar');
+        function filterQuestions() {
+            const searchTerm = document.getElementById('search-input').value.toLowerCase();
+            const filtered = questions.filter(q =>
+                q && // Check if q is not null/undefined
+                (q.college?.toLowerCase().includes(searchTerm) ||
+                q.subject?.toLowerCase().includes(searchTerm) ||
+                q.code?.toLowerCase().includes(searchTerm)) &&
+                (collegeFilter === '' || q.college === collegeFilter) &&
+                (subjectFilter === '' || q.subject === subjectFilter) &&
+                (codeFilter === '' || q.code === codeFilter)
+            );
+            renderQuestions(filtered);
+        }
+        
 
-        dragDropArea.addEventListener('click', () => fileInput.click());
+        function viewContent(content) {
+            alert('Viewing content: ' + content);
+        }
 
-        dragDropArea.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            dragDropArea.classList.add('dragover');
-        });
+        function downloadContent(content) {
+            alert('Downloading content: ' + content);
+        }
 
-        dragDropArea.addEventListener('dragleave', () => {
-            dragDropArea.classList.remove('dragover');
-        });
+        function showFilterModal(filterType, items) {
+            const modal = document.getElementById('filter-modal');
+            const title = document.getElementById('filter-modal-title');
+            const list = document.getElementById('filter-list');
+            const search = document.getElementById('filter-search');
 
-        dragDropArea.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dragDropArea.classList.remove('dragover');
-            const file = e.dataTransfer.files[0];
-            const fileType = file.type;
-            const validTypes = ['image/jpeg', 'image/jpg', 'application/pdf'];
+            title.textContent = `Select ${filterType}`;
+            list.innerHTML = '';
+            items.forEach(item => {
+                const li = document.createElement('li');
+                li.textContent = item;
+                li.onclick = () => {
+                    if (filterType === 'College') collegeFilter = item;
+                    if (filterType === 'Subject') subjectFilter = item;
+                    if (filterType === 'Course Code') codeFilter = item;
+                    document.getElementById(`${filterType.toLowerCase()}-filter`).textContent = item;
+                    modal.style.display = 'none';
+                    filterQuestions();
+                };
+                list.appendChild(li);
+            });
 
-            if (validTypes.includes(fileType)) {
-                fileInput.files = e.dataTransfer.files;
-                updateFileInfo();
-            } else {
-                alert('Please select a JPG, JPEG, or PDF file.');
+            search.oninput = () => {
+                const searchTerm = search.value.toLowerCase();
+                Array.from(list.children).forEach(li => {
+                    const match = li.textContent.toLowerCase().includes(searchTerm);
+                    li.style.display = match ? '' : 'none';
+                });
+            };
+
+            modal.style.display = 'block';
+        }
+
+        document.getElementById('college-filter').onclick = () => showFilterModal('College', colleges);
+        document.getElementById('subject-filter').onclick = () => showFilterModal('Subject', subjects);
+        document.getElementById('code-filter').onclick = () => showFilterModal('Course Code', courseCodes);
+        document.getElementById('reset-filters').onclick = resetFilters;
+
+        document.getElementById('search-input').oninput = filterQuestions;
+
+        window.onclick = (event) => {
+            const modal = document.getElementById('filter-modal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
             }
+        };
+
+        document.getElementById('upload-button').onclick = () => {
+            document.getElementById('upload-modal').style.display = 'block';
+        };
+
+        function closeUploadModal() {
+            document.getElementById('upload-modal').style.display = 'none';
+        }
+
+        document.getElementById('upload-form').onsubmit = async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+        
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+        
+                const result = await response.json();
+                if (response.ok) {
+                    alert('Upload successful!');
+                    document.getElementById('upload-modal').style.display = 'none';
+                    fetchDocuments();  // Fetch and update homepage
+                } else {
+                    alert(`Error: ${result.error}`);
+                }
+            } catch (error) {
+                console.error('Upload failed:', error);
+            }
+        };
+        
+        
+        
+        
+        
+        
+
+        function resetFilters() {
+            collegeFilter = '';
+            subjectFilter = '';
+            codeFilter = '';
+            document.getElementById('college-filter').textContent = 'Select College';
+            document.getElementById('subject-filter').textContent = 'Select Subject';
+            document.getElementById('code-filter').textContent = 'Select Course Code';
+            document.getElementById('search-input').value = '';
+            filterQuestions();
+        }
+
+        function updateFilters() {
+            colleges = Array.from(new Set(questions.map(q => q.college)));
+            subjects = Array.from(new Set(questions.map(q => q.subject)));
+            courseCodes = Array.from(new Set(questions.map(q => q.code)));
+        }
+
+        // Initial render
+        updateFilters();
+        renderQuestions(questions);
+
+        function handleFileSelect(files) {
+            const file = files[0];
+            if (!file) return;
+        
+            const preview = document.getElementById('file-preview');
+            preview.innerHTML = '';
+            preview.style.display = 'block';
+        
+            // Create a URL for the file
+            const fileURL = URL.createObjectURL(file);
+        
+            if (file.type === 'application/pdf') {
+                preview.innerHTML = `<iframe src="${fileURL}" width="100%" height="300px"></iframe>`;
+            } else if (file.type.startsWith('image/')) {
+                preview.innerHTML = `<img src="${fileURL}" style="max-width: 100%; height: auto;">`;
+            }
+        }
+        
+        // Ensure preview updates when a file is selected
+        document.getElementById('file-upload').addEventListener('change', function () {
+            handleFileSelect(this.files);
+        });
+        
+        
+        // Ensure file preview works
+        document.getElementById('file-upload').addEventListener('change', function () {
+            handleFileSelect(this.files);
         });
 
-        fileInput.addEventListener('change', updateFileInfo);
 
-        changeFileBtn.addEventListener('click', () => {
+        function changeFile() {
+            document.getElementById('file-upload').click();
+        }
+
+        function deleteFile() {
+            const fileInput = document.getElementById('file-upload');
+            const preview = document.getElementById('file-preview');
+            const fileName = document.getElementById('file-name');
+            const changeFileBtn = document.getElementById('change-file');
+            const deleteFileBtn = document.getElementById('delete-file');
+            const uploadLabel = document.getElementById('upload-label');
+
             fileInput.value = '';
-            updateFileInfo();
+            preview.innerHTML = '';
+            preview.style.display = 'none';
+            fileName.textContent = '';
+            changeFileBtn.style.display = 'none';
+            deleteFileBtn.style.display = 'none';
+            uploadLabel.textContent = 'Choose a file or drag it here';
+        }
+
+        // Add drag and drop functionality
+        const fileUploadContainer = document.querySelector('.file-upload');
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            fileUploadContainer.addEventListener(eventName, preventDefaults, false);
         });
 
-        function updateFileInfo() {
-            if (fileInput.files.length > 0) {
-                const file = fileInput.files[0];
-                const fileType = file.type;
-                const validTypes = ['image/jpeg', 'image/jpg', 'application/pdf'];
-
-                if (validTypes.includes(fileType)) {
-                    fileInfo.textContent = `Selected file: ${file.name} (${formatFileSize(file.size)})`;
-                    fileInfoContainer.style.display = 'flex';
-                    dragDropArea.style.display = 'none';
-                } else {
-                    fileInput.value = '';
-                    alert('Please select a JPG, JPEG, or PDF file.');
-                    fileInfo.textContent = '';
-                    fileInfoContainer.style.display = 'none';
-                    dragDropArea.style.display = 'block';
-                }
-            } else {
-                fileInfo.textContent = '';
-                fileInfoContainer.style.display = 'none';
-                dragDropArea.style.display = 'block';
-            }
-        }
-
-        function formatFileSize(bytes) {
-            if (bytes === 0) return '0 Bytes';
-            const k = 1024;
-            const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-        }
-
-        // Upload form submission
-        const uploadForm = document.getElementById('upload-form');
-
-        uploadForm.addEventListener('submit', (e) => {
+        function preventDefaults(e) {
             e.preventDefault();
-        
-            const formData = new FormData(uploadForm);
-        
-            // Debugging: Log all form fields
-            console.log("Form Data:");
-            for (const [key, value] of formData.entries()) {
-                console.log(`${key}: ${value}`);
-            }
-        
-            // Ensure no empty fields before submission
-            const requiredFields = ['type', 'paper_name', 'paper_code', 'paper_year', 'college', 'trade', 'semester', 'year', 'file'];
-            const missingFields = requiredFields.filter(field => !formData.get(field));
-            if (missingFields.length > 0) {
-                alert(`Please fill in all required fields: ${missingFields.join(', ')}`);
-                return;
-            }
-        
-            const xhr = new XMLHttpRequest();
-            xhr.open('POST', '/upload', true);
-        
-            xhr.onload = function () {
-                if (xhr.status >= 200 && xhr.status < 300) {
-                    console.log("Success Response:", xhr.responseText);
-                    alert("File uploaded successfully!");
-                } else {
-                    console.error("Error Response:", xhr.responseText);
-                    alert(`Upload failed: ${xhr.responseText}`);
-                }
-            };
-        
-            xhr.onerror = function () {
-                console.error("Request failed.");
-                alert("An error occurred during the upload. Please try again.");
-            };
-        
-            xhr.send(formData);
-        });
-        
-
-        // Sample resource data (replace with actual data from your backend)
-        const sampleResources = [
-            { title: 'Introduction to Programming', type: 'Notes', subject: 'Computer Science', college: 'MIT', year: 2022 },
-            { title: 'Calculus I Final Exam', type: 'Question Paper', subject: 'Mathematics', college: 'Harvard', year: 2021 },
-            { title: 'Data Structures and Algorithms', type: 'Notes', subject: 'Computer Science', college: 'Stanford', year: 2023 },
-            { title: 'Physics Midterm', type: 'Question Paper', subject: 'Physics', college: 'MIT', year: 2022 },
-            { title: 'Organic Chemistry Lab Manual', type: 'Notes', subject: 'Chemistry', college: 'Harvard', year: 2023 },
-            { title: 'Digital Logic Design', type: 'Question Paper', subject: 'Electrical Engineering', college: 'Stanford', year: 2021 },
-        ];
-
-        // Function to render resources
-        function renderResources(resources) {
-            const resourceList = document.getElementById('resource-list');
-            resourceList.innerHTML = '';
-            if (resources.length === 0) {
-                const noResults = document.createElement('div');
-                noResults.classList.add('no-results');
-                noResults.textContent = 'No resources found. Please try different filters.';
-                resourceList.appendChild(noResults);
-            } else {
-                resources.forEach(resource => {
-                    const resourceItem = document.createElement('div');
-                    resourceItem.classList.add('resource-item');
-                    resourceItem.innerHTML = `
-                        <h3>${resource.title}</h3>
-                        <p>${resource.type} - ${resource.subject} - ${resource.college} - ${resource.year}</p>
-                        <button>Download</button>
-                    `;
-                    resourceList.appendChild(resourceItem);
-                });
-            }
+            e.stopPropagation();
         }
 
-        // Initial render of resources
-        renderResources(sampleResources);
+        ['dragenter', 'dragover'].forEach(eventName => {
+            fileUploadContainer.addEventListener(eventName, highlight, false);
+        });
 
-        // Custom select functionality
-        function initCustomSelects() {
-            const customSelects = document.querySelectorAll('.custom-select');
-            customSelects.forEach(select => {
-                const selectSelected = select.querySelector('.select-selected');
-                const selectItems = select.querySelector('.select-items');
-                const searchInput = selectItems.querySelector('.select-search');
-                const options = selectItems.querySelectorAll('div:not(.select-search)');
+        ['dragleave', 'drop'].forEach(eventName => {
+            fileUploadContainer.addEventListener(eventName, unhighlight, false);
+        });
 
-                selectSelected.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    closeAllSelect(this);
-                    selectItems.classList.toggle('select-hide');
-                    this.classList.toggle('select-arrow-active');
-                    if (!selectItems.classList.contains('select-hide')) {
-                        searchInput.focus();
-                    }
-                });
-
-                function handleOptionClick(e) {
-                    e.stopPropagation();
-                    selectSelected.innerHTML = this.innerHTML;
-                    selectSelected.setAttribute('data-value', this.getAttribute('data-value'));
-                    closeAllSelect(selectSelected);
-                    selectItems.classList.add('select-hide');
-                    const changeEvent = new Event('change');
-                    select.dispatchEvent(changeEvent);
-                }
-
-                options.forEach(option => {
-                    option.addEventListener('click', handleOptionClick);
-                });
-
-                searchInput.addEventListener('input', function() {
-                    const filter = this.value.toLowerCase();
-                    let found = false;
-                    options.forEach(option => {
-                        const txtValue = option.textContent || option.innerText;
-                        if (txtValue.toLowerCase().indexOf(filter) > -1) {
-                            option.style.display = "";
-                            found = true;
-                        } else {
-                            option.style.display = "none";
-                        }
-                    });
-                    if (!found && filter !== '') {
-                        const customOption = selectItems.querySelector('.custom-option');
-                        if (customOption) {
-                            customOption.remove();
-                        }
-                        const newOption = document.createElement('div');
-                        newOption.textContent = filter;
-                        newOption.setAttribute('data-value', filter);
-                        newOption.classList.add('custom-option');
-                        newOption.addEventListener('click', handleOptionClick);
-                        selectItems.appendChild(newOption);
-                    }
-                });
-            });
-
-            document.addEventListener('click', closeAllSelect);
+        function highlight() {
+            fileUploadContainer.classList.add('dragover');
         }
 
-   
-
-        function closeAllSelect(elmnt) {
-            const selectItems = document.getElementsByClassName('select-items');
-            const selectSelected = document.getElementsByClassName('select-selected');
-            for (let i = 0; i < selectSelected.length; i++) {
-                selectSelected[i].classList.remove('select-arrow-active');
-            }
-            for (let i = 0; i < selectItems.length; i++) {
-                if (!elmnt || !elmnt.closest || !elmnt.closest('.custom-select')) {
-                    selectItems[i].classList.add('select-hide');
-                }
-            }
+        function unhighlight() {
+            fileUploadContainer.classList.remove('dragover');
         }
-        
 
-        // Initialize custom selects
-        initCustomSelects();
+        fileUploadContainer.addEventListener('drop', handleDrop, false);
 
-        // Update filter functionality
-        const filterSelects = document.querySelectorAll('.custom-select');
-        filterSelects.forEach(select => {
-            select.addEventListener('change', () => {
-                const filters = Array.from(filterSelects).reduce((acc, select) => {
-                    const selectedValue = select.querySelector('.select-selected').getAttribute('data-value');
-                    if (selectedValue) {
-                        acc[select.id.replace('-select', '')] = selectedValue;
-                    }
-                    return acc;
-                }, {});
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleFileSelect(files);
+        }
 
-                const filteredResources = sampleResources.filter(resource => {
-                    return Object.entries(filters).every(([key, value]) => {
-                        return resource[key] === value;
-                    });
-                });
+        const fileUploadInput = document.getElementById('file-upload');
+        if (fileUploadInput) {
+        fileUploadInput.addEventListener('change', (event) => {
+        handleFileSelect(event.target.files);
+    });
+}
 
-                renderResources(filteredResources);
+// fetch Documents
+
+async function fetchDocuments() {
+    try {
+        const response = await fetch('/fetch-documents');  // Call API
+        const data = await response.json();
+
+        if (response.ok) {
+            const questionsContainer = document.getElementById('questions-container');
+            questionsContainer.innerHTML = '';  // Clear existing content
+
+            const documents = [...data.notes, ...data.questions];  // Merge both collections
+
+            documents.forEach(doc => {
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                card.innerHTML = `
+                    <h3>${doc.paper_name} (${doc.paper_code})</h3>
+                    <p>College: ${doc.college}</p>
+                    <p>Year: ${doc.paper_year}, Semester: ${doc.semester}</p>
+                    <p>Type: ${doc.type}</p>
+                    <div class="buttons">
+                        <button class="view-btn" onclick="viewContent('${doc.file_url}')">View</button>
+                        <button class="download-btn" onclick="downloadContent('${doc.file_url}')">Download</button>
+                    </div>
+                `;
+                questionsContainer.appendChild(card);
             });
-        });
+        } else {
+            console.error('Error fetching documents:', data.error);
+        }
+    } catch (error) {
+        console.error('Fetch error:', error);
+    }
+}
 
-        // Filter and reset functionality for mobile
-        const showFiltersBtn = document.getElementById('show-filters-btn');
-        const resetFiltersBtn = document.getElementById('reset-filters-btn');
-        const filterContainer = document.querySelector('.filter-container');
+// Call the function on page load
+window.onload = fetchDocuments;
 
-        showFiltersBtn.addEventListener('click', () => {
-            filterContainer.classList.toggle('show');
-            showFiltersBtn.textContent = filterContainer.classList.contains('show') ? 'Hide Filters' : 'Filter';
-        });
 
-        resetFiltersBtn.addEventListener('click', () => {
-            // Reset all custom selects
-            const customSelects = document.querySelectorAll('.custom-select');
-            customSelects.forEach(select => {
-                const selectSelected = select.querySelector('.select-selected');
-                selectSelected.innerHTML = 'Select';
-                selectSelected.setAttribute('data-value', '');
-            });
-
-            // Trigger change event to update the resource list
-            const changeEvent = new Event('change');
-            customSelects[0].dispatchEvent(changeEvent);
-        });
     </script>
 </body>
 </html>
