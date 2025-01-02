@@ -107,14 +107,14 @@
             font-weight: bold;
             color: var(--secondary-color);
         }
-        select, input[type="text"], input[type="file"] {
+        select, input[type="text"], input[type="file"], input[type="number"] {
             padding: 0.75rem;
             border: 1px solid #ccc;
             border-radius: 4px;
             font-size: 1rem;
             transition: border-color 0.3s ease;
         }
-        select:focus, input[type="text"]:focus, input[type="file"]:focus {
+        select:focus, input[type="text"]:focus, input[type="file"]:focus, input[type="number"]:focus {
             outline: none;
             border-color: var(--accent-color);
         }
@@ -130,7 +130,8 @@
             transition: background-color 0.3s ease;
         }
         button:hover {
-            background-color: var(--secondary-color);
+            background-color: var(--accent-color);
+            color: #000000;
         }
         .resource-list {
             display: grid;
@@ -178,7 +179,8 @@
             transition: background-color 0.3s ease;
         }
         nav a.active {
-            background-color: var(--secondary-color);
+            background-color: var(--accent-color);
+            color: #000000;
         }
         .custom-select {
             position: relative;
@@ -259,6 +261,55 @@
             .filter-container.show {
                 display: grid;
             }
+        }
+        .upload-progress {
+            width: 100%;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+            margin-top: 1rem;
+            overflow: hidden;
+            display: none;
+        }
+        .progress-bar {
+            width: 0%;
+            height: 20px;
+            background-color: var(--accent-color);
+            text-align: center;
+            line-height: 20px;
+            color: white;
+            transition: width 0.3s ease;
+        }
+        .drag-drop-area {
+            border: 2px dashed #ccc;
+            border-radius: 4px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .drag-drop-area:hover, .drag-drop-area.dragover {
+            background-color: #f0f0f0;
+        }
+        .upload-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        #file-info {
+            margin-top: 1rem;
+            font-style: italic;
+        }
+        .file-info-container {
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            background-color: #f0f0f0;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            margin-top: 1rem;
+        }
+        .file-info-container button {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
         }
     </style>
 </head>
@@ -428,8 +479,23 @@
                     <input type="text" id="paper-code" required>
                 </div>
                 <div class="form-item">
+                    <label for="paper-year">Year</label>
+                    <input type="number" id="paper-year" required min="1900" max="2099" step="1">
+                </div>
+                <div class="form-item">
                     <label for="document-upload">Document Upload</label>
-                    <input type="file" id="document-upload" required>
+                    <div id="drag-drop-area" class="drag-drop-area">
+                        <div class="upload-icon">📁</div>
+                        <p>Drag and drop your file here or click to select</p>
+                        <input type="file" id="document-upload" required style="display: none;" accept=".jpg,.jpeg,.pdf">
+                    </div>
+                    <div class="file-info-container">
+                        <span id="file-info"></span>
+                        <button type="button" id="change-file-btn">Change File</button>
+                    </div>
+                </div>
+                <div class="upload-progress">
+                    <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
                 </div>
                 <div class="form-item">
                     <button type="submit">Upload</button>
@@ -484,26 +550,130 @@
             });
         });
 
+        // Enhanced file upload functionality
+        const dragDropArea = document.getElementById('drag-drop-area');
+        const fileInput = document.getElementById('document-upload');
+        const fileInfo = document.getElementById('file-info');
+        const fileInfoContainer = document.querySelector('.file-info-container');
+        const changeFileBtn = document.getElementById('change-file-btn');
+        const uploadProgress = document.querySelector('.upload-progress');
+        const progressBar = document.querySelector('.progress-bar');
+
+        dragDropArea.addEventListener('click', () => fileInput.click());
+
+        dragDropArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dragDropArea.classList.add('dragover');
+        });
+
+        dragDropArea.addEventListener('dragleave', () => {
+            dragDropArea.classList.remove('dragover');
+        });
+
+        dragDropArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dragDropArea.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            const fileType = file.type;
+            const validTypes = ['image/jpeg', 'image/jpg', 'application/pdf'];
+
+            if (validTypes.includes(fileType)) {
+                fileInput.files = e.dataTransfer.files;
+                updateFileInfo();
+            } else {
+                alert('Please select a JPG, JPEG, or PDF file.');
+            }
+        });
+
+        fileInput.addEventListener('change', updateFileInfo);
+
+        changeFileBtn.addEventListener('click', () => {
+            fileInput.value = '';
+            updateFileInfo();
+        });
+
+        function updateFileInfo() {
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                const fileType = file.type;
+                const validTypes = ['image/jpeg', 'image/jpg', 'application/pdf'];
+
+                if (validTypes.includes(fileType)) {
+                    fileInfo.textContent = `Selected file: ${file.name} (${formatFileSize(file.size)})`;
+                    fileInfoContainer.style.display = 'flex';
+                    dragDropArea.style.display = 'none';
+                } else {
+                    fileInput.value = '';
+                    alert('Please select a JPG, JPEG, or PDF file.');
+                    fileInfo.textContent = '';
+                    fileInfoContainer.style.display = 'none';
+                    dragDropArea.style.display = 'block';
+                }
+            } else {
+                fileInfo.textContent = '';
+                fileInfoContainer.style.display = 'none';
+                dragDropArea.style.display = 'block';
+            }
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
         // Upload form submission
         const uploadForm = document.getElementById('upload-form');
 
         uploadForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const formData = new FormData(uploadForm);
-            console.log('Form data:', Object.fromEntries(formData));
-            // Here you would typically send the data to your backend
-            alert('Document uploaded successfully!');
-            uploadForm.reset();
+
+            uploadProgress.style.display = 'block';
+            progressBar.style.width = '0%';
+            progressBar.textContent = '0%';
+
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', '/upload', true);
+
+            xhr.upload.onprogress = (event) => {
+                if (event.lengthComputable) {
+                    const percentComplete = (event.loaded / event.total) * 100;
+                    progressBar.style.width = percentComplete + '%';
+                    progressBar.textContent = percentComplete.toFixed(0) + '%';
+                    progressBar.setAttribute('aria-valuenow', percentComplete.toFixed(0));
+                }
+            };
+
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    const response = JSON.parse(xhr.responseText);
+                    alert(response.message);
+                    uploadForm.reset();
+                    updateFileInfo();
+                    uploadProgress.style.display = 'none';
+                } else {
+                    alert('Upload failed. Please try again.');
+                }
+            };
+
+            xhr.onerror = function() {
+                alert('Upload failed. Please try again.');
+            };
+
+            xhr.send(formData);
         });
 
         // Sample resource data (replace with actual data from your backend)
         const sampleResources = [
-            { title: 'Introduction to Programming', type: 'Notes', subject: 'Computer Science', college: 'MIT' },
-            { title: 'Calculus I Final Exam', type: 'Question Paper', subject: 'Mathematics', college: 'Harvard' },
-            { title: 'Data Structures and Algorithms', type: 'Notes', subject: 'Computer Science', college: 'Stanford' },
-            { title: 'Physics Midterm', type: 'Question Paper', subject: 'Physics', college: 'MIT' },
-            { title: 'Organic Chemistry Lab Manual', type: 'Notes', subject: 'Chemistry', college: 'Harvard' },
-            { title: 'Digital Logic Design', type: 'Question Paper', subject: 'Electrical Engineering', college: 'Stanford' },
+            { title: 'Introduction to Programming', type: 'Notes', subject: 'Computer Science', college: 'MIT', year: 2022 },
+            { title: 'Calculus I Final Exam', type: 'Question Paper', subject: 'Mathematics', college: 'Harvard', year: 2021 },
+            { title: 'Data Structures and Algorithms', type: 'Notes', subject: 'Computer Science', college: 'Stanford', year: 2023 },
+            { title: 'Physics Midterm', type: 'Question Paper', subject: 'Physics', college: 'MIT', year: 2022 },
+            { title: 'Organic Chemistry Lab Manual', type: 'Notes', subject: 'Chemistry', college: 'Harvard', year: 2023 },
+            { title: 'Digital Logic Design', type: 'Question Paper', subject: 'Electrical Engineering', college: 'Stanford', year: 2021 },
         ];
 
         // Function to render resources
@@ -521,7 +691,7 @@
                     resourceItem.classList.add('resource-item');
                     resourceItem.innerHTML = `
                         <h3>${resource.title}</h3>
-                        <p>${resource.type} - ${resource.subject} - ${resource.college}</p>
+                        <p>${resource.type} - ${resource.subject} - ${resource.college} - ${resource.year}</p>
                         <button>Download</button>
                     `;
                     resourceList.appendChild(resourceItem);
@@ -546,31 +716,49 @@
                     closeAllSelect(this);
                     selectItems.classList.toggle('select-hide');
                     this.classList.toggle('select-arrow-active');
+                    if (!selectItems.classList.contains('select-hide')) {
+                        searchInput.focus();
+                    }
                 });
 
+                function handleOptionClick(e) {
+                    e.stopPropagation();
+                    selectSelected.innerHTML = this.innerHTML;
+                    selectSelected.setAttribute('data-value', this.getAttribute('data-value'));
+                    closeAllSelect(selectSelected);
+                    selectItems.classList.add('select-hide');
+                    const changeEvent = new Event('change');
+                    select.dispatchEvent(changeEvent);
+                }
+
                 options.forEach(option => {
-                    option.addEventListener('click', function(e) {
-                        selectSelected.innerHTML = this.innerHTML;
-                        selectSelected.setAttribute('data-value', this.getAttribute('data-value'));
-                        closeAllSelect(selectSelected);
-                        // Hide the select-items after selection
-                        selectItems.classList.add('select-hide');
-                        // Trigger change event for filtering
-                        const changeEvent = new Event('change');
-                        select.dispatchEvent(changeEvent);
-                    });
+                    option.addEventListener('click', handleOptionClick);
                 });
 
                 searchInput.addEventListener('input', function() {
                     const filter = this.value.toLowerCase();
+                    let found = false;
                     options.forEach(option => {
                         const txtValue = option.textContent || option.innerText;
                         if (txtValue.toLowerCase().indexOf(filter) > -1) {
                             option.style.display = "";
+                            found = true;
                         } else {
                             option.style.display = "none";
                         }
                     });
+                    if (!found && filter !== '') {
+                        const customOption = selectItems.querySelector('.custom-option');
+                        if (customOption) {
+                            customOption.remove();
+                        }
+                        const newOption = document.createElement('div');
+                        newOption.textContent = filter;
+                        newOption.setAttribute('data-value', filter);
+                        newOption.classList.add('custom-option');
+                        newOption.addEventListener('click', handleOptionClick);
+                        selectItems.appendChild(newOption);
+                    }
                 });
             });
 
@@ -581,12 +769,10 @@
             const selectItems = document.getElementsByClassName('select-items');
             const selectSelected = document.getElementsByClassName('select-selected');
             for (let i = 0; i < selectSelected.length; i++) {
-                if (elmnt != selectSelected[i]) {
-                    selectSelected[i].classList.remove('select-arrow-active');
-                }
+                selectSelected[i].classList.remove('select-arrow-active');
             }
             for (let i = 0; i < selectItems.length; i++) {
-                if (elmnt != selectItems[i] && !elmnt.closest('.custom-select')) {
+                if (elmnt !== selectItems[i] && !elmnt.closest('.custom-select')) {
                     selectItems[i].classList.add('select-hide');
                 }
             }
