@@ -410,97 +410,46 @@
 
         <div id="upload-page" class="page">
             <h2>Upload Document</h2>
-            <form id="upload-form" class="form-container">
+            <form id="upload-form" method="POST" enctype="multipart/form-data" action="/upload">
                 <div class="form-item">
-                    <label for="upload-type">Type</label>
-                    <div class="custom-select" id="upload-type-select">
-                        <div class="select-selected">Select</div>
-                        <div class="select-items select-hide">
-                            <input type="text" class="select-search" placeholder="Search...">
-                            <div data-value="">Select</div>
-                            <div data-value="question-paper">Question Paper</div>
-                            <div data-value="notes">Notes</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="form-item">
-                    <label for="upload-college">College/University/Board</label>
-                    <div class="custom-select" id="upload-college-select">
-                        <div class="select-selected">Select</div>
-                        <div class="select-items select-hide">
-                            <input type="text" class="select-search" placeholder="Search...">
-                            <div data-value="">Select</div>
-                            <div data-value="mit">MIT</div>
-                            <div data-value="harvard">Harvard</div>
-                            <div data-value="stanford">Stanford</div>
-                            <div data-value="cbse">CBSE</div>
-                            <div data-value="icse">ICSE</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="form-item">
-                    <label for="upload-semester">Semester</label>
-                    <div class="custom-select" id="upload-semester-select">
-                        <div class="select-selected">Select</div>
-                        <div class="select-items select-hide">
-                            <input type="text" class="select-search" placeholder="Search...">
-                            <div data-value="">Select</div>
-                            <div data-value="1">1</div>
-                            <div data-value="2">2</div>
-                            <div data-value="3">3</div>
-                            <div data-value="4">4</div>
-                            <div data-value="5">5</div>
-                            <div data-value="6">6</div>
-                            <div data-value="7">7</div>
-                            <div data-value="8">8</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="form-item">
-                    <label for="upload-trade">Trade</label>
-                    <div class="custom-select" id="upload-trade-select">
-                        <div class="select-selected">Select</div>
-                        <div class="select-items select-hide">
-                            <input type="text" class="select-search" placeholder="Search...">
-                            <div data-value="">Select</div>
-                            <div data-value="cs">Computer Science</div>
-                            <div data-value="ee">Electrical Engineering</div>
-                            <div data-value="me">Mechanical Engineering</div>
-                            <div data-value="ce">Civil Engineering</div>
-                        </div>
-                    </div>
+                    <label for="type">Type</label>
+                    <select name="type" id="type" required>
+                        <option value="notes">Notes</option>
+                        <option value="question-paper">Question Paper</option>
+                    </select>
                 </div>
                 <div class="form-item">
                     <label for="paper-name">Paper Name</label>
-                    <input type="text" id="paper-name" required>
+                    <input type="text" id="paper-name" name="paper_name" required>
                 </div>
                 <div class="form-item">
                     <label for="paper-code">Paper Code</label>
-                    <input type="text" id="paper-code" required>
+                    <input type="text" id="paper-code" name="paper_code" required>
                 </div>
                 <div class="form-item">
                     <label for="paper-year">Year</label>
-                    <input type="number" id="paper-year" required min="1900" max="2099" step="1">
+                    <input type="number" id="paper-year" name="paper_year" required>
                 </div>
                 <div class="form-item">
-                    <label for="document-upload">Document Upload</label>
-                    <div id="drag-drop-area" class="drag-drop-area">
-                        <div class="upload-icon">📁</div>
-                        <p>Drag and drop your file here or click to select</p>
-                        <input type="file" id="document-upload" required style="display: none;" accept=".jpg,.jpeg,.pdf">
-                    </div>
-                    <div class="file-info-container">
-                        <span id="file-info"></span>
-                        <button type="button" id="change-file-btn">Change File</button>
-                    </div>
-                </div>
-                <div class="upload-progress">
-                    <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                    <label for="college">College</label>
+                    <input type="text" id="college" name="college" required>
                 </div>
                 <div class="form-item">
-                    <button type="submit">Upload</button>
+                    <label for="trade">Trade</label>
+                    <input type="text" id="trade" name="trade" required>
                 </div>
+                <div class="form-item">
+                    <label for="semester">Semester</label>
+                    <input type="text" id="semester" name="semester" required>
+                </div>
+                <div class="form-item">
+                    <label for="document-upload">Upload File</label>
+                    <input type="file" id="document-upload" name="file" required accept=".jpg,.jpeg,.pdf">
+                </div>
+                <button type="submit">Upload</button>
             </form>
+            
+            
         </div>
     </main>
 
@@ -629,42 +578,44 @@
 
         uploadForm.addEventListener('submit', (e) => {
             e.preventDefault();
+        
             const formData = new FormData(uploadForm);
-
-            uploadProgress.style.display = 'block';
-            progressBar.style.width = '0%';
-            progressBar.textContent = '0%';
-
+        
+            // Debugging: Log all form fields
+            console.log("Form Data:");
+            for (const [key, value] of formData.entries()) {
+                console.log(`${key}: ${value}`);
+            }
+        
+            // Ensure no empty fields before submission
+            const requiredFields = ['type', 'paper_name', 'paper_code', 'paper_year', 'college', 'trade', 'semester', 'year', 'file'];
+            const missingFields = requiredFields.filter(field => !formData.get(field));
+            if (missingFields.length > 0) {
+                alert(`Please fill in all required fields: ${missingFields.join(', ')}`);
+                return;
+            }
+        
             const xhr = new XMLHttpRequest();
             xhr.open('POST', '/upload', true);
-
-            xhr.upload.onprogress = (event) => {
-                if (event.lengthComputable) {
-                    const percentComplete = (event.loaded / event.total) * 100;
-                    progressBar.style.width = percentComplete + '%';
-                    progressBar.textContent = percentComplete.toFixed(0) + '%';
-                    progressBar.setAttribute('aria-valuenow', percentComplete.toFixed(0));
-                }
-            };
-
-            xhr.onload = function() {
-                if (xhr.status === 200) {
-                    const response = JSON.parse(xhr.responseText);
-                    alert(response.message);
-                    uploadForm.reset();
-                    updateFileInfo();
-                    uploadProgress.style.display = 'none';
+        
+            xhr.onload = function () {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    console.log("Success Response:", xhr.responseText);
+                    alert("File uploaded successfully!");
                 } else {
-                    alert('Upload failed. Please try again.');
+                    console.error("Error Response:", xhr.responseText);
+                    alert(`Upload failed: ${xhr.responseText}`);
                 }
             };
-
-            xhr.onerror = function() {
-                alert('Upload failed. Please try again.');
+        
+            xhr.onerror = function () {
+                console.error("Request failed.");
+                alert("An error occurred during the upload. Please try again.");
             };
-
+        
             xhr.send(formData);
         });
+        
 
         // Sample resource data (replace with actual data from your backend)
         const sampleResources = [
@@ -765,6 +716,8 @@
             document.addEventListener('click', closeAllSelect);
         }
 
+   
+
         function closeAllSelect(elmnt) {
             const selectItems = document.getElementsByClassName('select-items');
             const selectSelected = document.getElementsByClassName('select-selected');
@@ -772,11 +725,12 @@
                 selectSelected[i].classList.remove('select-arrow-active');
             }
             for (let i = 0; i < selectItems.length; i++) {
-                if (elmnt !== selectItems[i] && !elmnt.closest('.custom-select')) {
+                if (!elmnt || !elmnt.closest || !elmnt.closest('.custom-select')) {
                     selectItems[i].classList.add('select-hide');
                 }
             }
         }
+        
 
         // Initialize custom selects
         initCustomSelects();
