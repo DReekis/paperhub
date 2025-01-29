@@ -1,90 +1,80 @@
-from flask import Flask, request, jsonify, render_template                                                                                       
-from flask_cors import CORS
+from flask import Flask, request, jsonify, render_template, send_file
 from pymongo import MongoClient
 import cloudinary
 import cloudinary.uploader
-import os
 from dotenv import load_dotenv
+import io
+import os
+import ssl
+
 
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app)
 
-# MongoDB Setup
-client = MongoClient(os.getenv("MONGO_URI"))  
-db = client["paperhub"]      
-notes_collection = db["notes"]
-questions_collection = db["questions"]
 
-# Cloudinary Setup
+# MongoDB Configuration
+MONGO_URI = os.getenv('MONGO_URI')
+
+client = MongoClient(
+        MONGO_URI, 
+        tls=True, 
+        tlsCAFile=ssl.get_default_verify_paths().cafile
+    )
+db = client["paperhub"]
+notes_collection = db['notes']
+questions_collection = db['questions']
+
+
+
+# Cloudinary Configuration
 cloudinary.config(
-     cloud_name=os.getenv("CLOUDINARY_URL").split("@")[-1],
-    api_key=os.getenv("CLOUDINARY_URL").split("//")[1].split(":")[0],
-    api_secret=os.getenv("CLOUDINARY_URL").split(":")[2].split("@")[0]
+    cloud_name=os.getenv('CLOUDINARY_CLOUD_NAME'),
+    api_key=os.getenv('CLOUDINARY_API_KEY'),
+    api_secret=os.getenv('CLOUDINARY_API_SECRET')
 )
 
-
-@app.route("/")
-def home():
-    return render_template("index.html")
-
-# Routes
-@app.route('/resources', methods=['GET'])
-def get_resources():
-    filters = request.args.to_dict()
-    resources = list(collection.find(filters))
-    for resource in resources:
-        resource["_id"] = str(resource["_id"])
-    return jsonify(resources)
+@app.route('/')
+def index():
+    return render_template('index.html')  
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
     try:
-        # Log form data and uploaded file
-        print("Received form data:", request.form.to_dict())
-        print("Received file:", request.files.get('file'))
+        print("Received form data:", request.form.to_dict())  # Debugging
+        print("Received file:", request.files.get('file-upload'))  # Debugging
 
-        # Extract form data
-        data = request.form.to_dict()
-        file = request.files.get('file')
+        FIELD_MAPPING = {
+            "course_name": "paper_name",
+            "course_code": "paper_code",
+            "year": "paper_year",
+            "college": "college",
+            "trade": "trade",
+            "semester": "semester",
+            "type": "type"
+        }
+        data = {FIELD_MAPPING.get(k, k): v for k, v in request.form.to_dict().items()}
+        file = request.files.get('file-upload')
 
-        # Validate form fields
-        required_fields = ['type', 'paper_name', 'paper_code', 'paper_year', 'college', 'trade', 'semester']
-        missing_fields = [field for field in required_fields if not data.get(field)]
-        if missing_fields:
-            return jsonify({"error": f"Missing fields: {', '.join(missing_fields)}"}), 400
-
-        # Validate file presence
+        # Check if file exists
         if not file:
             return jsonify({"error": "No file provided"}), 400
 
-        # Validate file type
-        valid_types = ['image/jpeg', 'image/jpg', 'application/pdf']
+        # Ensure file type is valid
+        valid_types = ['application/pdf', 'image/jpeg', 'image/jpg']
         if file.content_type not in valid_types:
             return jsonify({"error": "Invalid file type. Allowed: .jpg, .jpeg, .pdf"}), 400
 
-        # Determine the Cloudinary folder
-        file_type = data['type'].lower()
-        folder = "notes" if file_type == "notes" else "question_papers"
-
         # Upload file to Cloudinary
-        print("Uploading file to Cloudinary...")
+        folder = "notes" if data["type"].lower() == "notes" else "question_papers"
         upload_result = cloudinary.uploader.upload(file, folder=folder)
-        print("Cloudinary upload result:", upload_result)
+        data["file_url"] = upload_result["secure_url"]
 
-        # Extract the uploaded file URL and public ID
-        file_url = upload_result['secure_url']
-        public_id = upload_result['public_id']
-        print("Uploaded file URL:", file_url)
-
-        # Save metadata and Cloudinary file info to MongoDB
-        data['file_url'] = file_url
-        data['public_id'] = public_id
-        collection = notes_collection if file_type == "notes" else questions_collection
+        # Save document in MongoDB
+        collection = notes_collection if data["type"].lower() == "notes" else questions_collection
         collection.insert_one(data)
 
-        return jsonify({"message": "File uploaded successfully!", "file_url": file_url}), 201
+        return jsonify({"message": "Upload successful!", "file_url": data["file_url"]}), 201
 
     except Exception as e:
         print(f"Exception occurred: {str(e)}")
@@ -92,7 +82,22 @@ def upload_file():
 
 
 
+@app.route('/fetch-documents', methods=['GET'])
+def fetch_documents():
+    try:
+        notes = list(notes_collection.find({}, {'_id': 0}))  # Get all notes
+        questions = list(questions_collection.find({}, {'_id': 0}))  # Get all questions
 
+        return jsonify({"notes": notes, "questions": questions}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/download/<string:file_url>', methods=['GET'])
+def download_file(file_url):
+    # Fetch the file from Cloudinary for download
+    response = cloudinary.utils.download(file_url)
+    return send_file(io.BytesIO(response.content), download_name=file_url.split('/')[-1])
 
 if __name__ == '__main__':
     app.run(debug=True)
