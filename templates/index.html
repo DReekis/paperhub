@@ -317,12 +317,13 @@
         <div class="search-filter-container">
             <input type="text" id="search-input" placeholder="Search for college, subject, or course code">
             <div class="filter-buttons">
-                <button id="reset-filters" class="filter-button">Reset Filters</button>
                 <button id="college-filter" class="filter-button">Select College</button>
                 <button id="subject-filter" class="filter-button">Select Subject</button>
                 <button id="code-filter" class="filter-button">Select Course Code</button>
+                <button id="reset-filters" class="filter-button reset-button">Reset Filters</button>
             </div>
-            <button id="upload-button">Upload</button>
+            
+            <button id="upload-button" class="upload-btn">Upload</button>
         </div>
 
         <div id="questions-container"></div>
@@ -400,113 +401,207 @@
         let colleges = [];
         let subjects = [];
         let courseCodes = [];
-
+        
         let collegeFilter = '';
         let subjectFilter = '';
         let codeFilter = '';
-
+        
+        // ✅ Render Questions on Page
         function renderQuestions(filteredQuestions) {
             const container = document.getElementById('questions-container');
             container.innerHTML = '';
-
+        
+            if (filteredQuestions.length === 0) {
+                container.innerHTML = `<p style="text-align: center;">No results found</p>`;
+                return;
+            }
+        
             filteredQuestions.forEach(q => {
                 const card = document.createElement('div');
                 card.className = 'question-card';
                 card.innerHTML = `
-                    <h3>${q.subject} (${q.code})</h3>
+                    <h3>${q.paper_name} (${q.paper_code})</h3>
                     <p>College: ${q.college}</p>
-                    <p>Year: ${q.year}, Semester: ${q.semester}</p>
+                    <p>Year: ${q.paper_year}, Semester: ${q.semester}</p>
                     <p>Type: ${q.type}</p>
                     <div class="buttons">
-                        <button class="view-btn" onclick="viewContent('${q.content}')">View</button>
-                        <button class="download-btn" onclick="downloadContent('${q.content}')">Download</button>
+                        <button class="view-btn" onclick="viewContent('${q.file_url}')">View</button>
+                        <button class="download-btn" onclick="downloadContent('${q.file_url}')">Download</button>
                     </div>
                 `;
                 container.appendChild(card);
             });
         }
-
+        
+        // ✅ Search Function
         function filterQuestions() {
             const searchTerm = document.getElementById('search-input').value.toLowerCase();
+        
             const filtered = questions.filter(q =>
-                q && // Check if q is not null/undefined
-                (q.college?.toLowerCase().includes(searchTerm) ||
-                q.subject?.toLowerCase().includes(searchTerm) ||
-                q.code?.toLowerCase().includes(searchTerm)) &&
-                (collegeFilter === '' || q.college === collegeFilter) &&
-                (subjectFilter === '' || q.subject === subjectFilter) &&
-                (codeFilter === '' || q.code === codeFilter)
+                (!collegeFilter || q.college === collegeFilter) &&
+                (!subjectFilter || q.paper_name === subjectFilter) &&
+                (!codeFilter || q.paper_code === codeFilter) &&
+                (q.paper_name?.toLowerCase().includes(searchTerm) ||
+                 q.paper_code?.toLowerCase().includes(searchTerm) ||
+                 q.college?.toLowerCase().includes(searchTerm))
             );
+        
             renderQuestions(filtered);
         }
         
-
-        function viewContent(content) {
-            alert('Viewing content: ' + content);
+        // ✅ Fetch Documents from Backend
+        async function fetchDocuments() {
+            try {
+                const response = await fetch('/fetch-documents');
+                const data = await response.json();
+        
+                if (response.ok) {
+                    questions = [...data.notes, ...data.questions];
+                    updateFilters();
+                    renderQuestions(questions);
+                } else {
+                    console.error('Error fetching documents:', data.error);
+                }
+            } catch (error) {
+                console.error('Fetch error:', error);
+            }
         }
-
-        function downloadContent(content) {
-            alert('Downloading content: ' + content);
+        
+        // ✅ Fetch Metadata for Filters
+        async function loadMetadata() {
+            try {
+                const response = await fetch('/get-metadata');
+                const data = await response.json();
+        
+                if (response.ok) {
+                    populateDropdown('college-filter', data.colleges);
+                    populateDropdown('subject-filter', data.course_names);
+                    populateDropdown('code-filter', data.course_codes);
+                } else {
+                    console.error("Error loading metadata:", data.error);
+                }
+            } catch (error) {
+                console.error("Error loading metadata:", error);
+            }
         }
+        
+        // ✅ Populate Dropdown Filters
+        function populateDropdown(dropdownId, values) {
+            const dropdown = document.getElementById(dropdownId);
+            dropdown.innerHTML = `<option value="">Select ${dropdownId.replace('-filter', '').replace('-', ' ')}</option>`;
+        
+            values.forEach(value => {
+                const option = document.createElement('option');
+                option.value = value;
+                option.textContent = value;
+                dropdown.appendChild(option);
+            });
+        }
+        
+        // ✅ Show Filter Modal
+
+        document.getElementById('college-filter').onclick = () => showFilterModal('College', colleges);
+        document.getElementById('subject-filter').onclick = () => showFilterModal('Subject', subjects);
+        document.getElementById('code-filter').onclick = () => showFilterModal('Course Code', courseCodes);
 
         function showFilterModal(filterType, items) {
             const modal = document.getElementById('filter-modal');
             const title = document.getElementById('filter-modal-title');
             const list = document.getElementById('filter-list');
             const search = document.getElementById('filter-search');
-
+        
             title.textContent = `Select ${filterType}`;
             list.innerHTML = '';
+        
             items.forEach(item => {
                 const li = document.createElement('li');
                 li.textContent = item;
                 li.onclick = () => {
-                    if (filterType === 'College') collegeFilter = item;
-                    if (filterType === 'Subject') subjectFilter = item;
-                    if (filterType === 'Course Code') codeFilter = item;
-                    document.getElementById(`${filterType.toLowerCase()}-filter`).textContent = item;
+                    if (filterType === 'College') {
+                        collegeFilter = item;
+                        document.getElementById('college-filter').textContent = item;
+                    }
+                    if (filterType === 'Subject') {
+                        subjectFilter = item;
+                        document.getElementById('subject-filter').textContent = item;
+                    }
+                    if (filterType === 'Course Code') {
+                        codeFilter = item;
+                        document.getElementById('code-filter').textContent = item;
+                    }
+        
                     modal.style.display = 'none';
                     filterQuestions();
                 };
                 list.appendChild(li);
             });
-
+        
             search.oninput = () => {
                 const searchTerm = search.value.toLowerCase();
                 Array.from(list.children).forEach(li => {
-                    const match = li.textContent.toLowerCase().includes(searchTerm);
-                    li.style.display = match ? '' : 'none';
+                    li.style.display = li.textContent.toLowerCase().includes(searchTerm) ? '' : 'none';
                 });
             };
-
+        
             modal.style.display = 'block';
         }
-
-        document.getElementById('college-filter').onclick = () => showFilterModal('College', colleges);
-        document.getElementById('subject-filter').onclick = () => showFilterModal('Subject', subjects);
-        document.getElementById('code-filter').onclick = () => showFilterModal('Course Code', courseCodes);
+        
+        
+        // ✅ Reset Filters
         document.getElementById('reset-filters').onclick = resetFilters;
 
-        document.getElementById('search-input').oninput = filterQuestions;
-
-        window.onclick = (event) => {
-            const modal = document.getElementById('filter-modal');
-            if (event.target === modal) {
-                modal.style.display = 'none';
-            }
-        };
-
-        document.getElementById('upload-button').onclick = () => {
-            document.getElementById('upload-modal').style.display = 'block';
-        };
-
-        function closeUploadModal() {
-            document.getElementById('upload-modal').style.display = 'none';
-        }
-
-        document.getElementById('upload-form').onsubmit = async (e) => {
-            e.preventDefault();
+        function resetFilters() {
+            collegeFilter = '';
+            subjectFilter = '';
+            codeFilter = '';
             
+            document.getElementById('college-filter').textContent = 'Select College';
+            document.getElementById('subject-filter').textContent = 'Select Subject';
+            document.getElementById('code-filter').textContent = 'Select Course Code';
+            document.getElementById('search-input').value = '';
+        
+            filterQuestions(); // Re-run search to show all results
+        }
+        
+        
+        // ✅ Update Filters Dynamically
+        function updateFilters() {
+            colleges = Array.from(new Set(questions.map(q => q.college))).filter(Boolean);
+            subjects = Array.from(new Set(questions.map(q => q.paper_name))).filter(Boolean);
+            courseCodes = Array.from(new Set(questions.map(q => q.paper_code))).filter(Boolean);
+        
+            // Ensure default text appears when filters are empty
+            document.getElementById('college-filter').textContent = 'Select College';
+            document.getElementById('subject-filter').textContent = 'Select Subject';
+            document.getElementById('code-filter').textContent = 'Select Course Code';
+        }
+        
+        
+        // ✅ File Upload Preview
+        document.getElementById('file-upload').addEventListener('change', function () {
+            handleFileSelect(this.files);
+        });
+        
+        function handleFileSelect(files) {
+            const file = files[0];
+            if (!file) return;
+        
+            const preview = document.getElementById('file-preview');
+            preview.innerHTML = '';
+            preview.style.display = 'block';
+        
+            const fileURL = URL.createObjectURL(file);
+        
+            if (file.type === 'application/pdf') {
+                preview.innerHTML = `<iframe src="${fileURL}" width="100%" height="300px"></iframe>`;
+            } else if (file.type.startsWith('image/')) {
+                preview.innerHTML = `<img src="${fileURL}" style="max-width: 100%; height: auto;">`;
+            }
+        }
+        
+        // ✅ Upload Form Submission
+        document.getElementById('upload-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
             const formData = new FormData(e.target);
         
             try {
@@ -519,176 +614,60 @@
                 if (response.ok) {
                     alert('Upload successful!');
                     document.getElementById('upload-modal').style.display = 'none';
-                    fetchDocuments();  // Fetch and update homepage
+                    fetchDocuments(); // Refresh data after upload
                 } else {
                     alert(`Error: ${result.error}`);
                 }
             } catch (error) {
                 console.error('Upload failed:', error);
             }
+        });
+
+        //✅ Upload-button functionality
+
+        document.getElementById('upload-button').addEventListener('click', () => {
+            const modal = document.getElementById('upload-modal');
+            if (modal) {
+                modal.style.display = 'block';
+            } else {
+                console.error("Upload modal not found.");
+            }
+        });
+        
+        function closeUploadModal() {
+            document.getElementById('upload-modal').style.display = 'none';
+        }
+        
+        // Close when clicking outside the modal
+        window.onclick = function (event) {
+            const modal = document.getElementById('upload-modal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
         };
         
         
         
         
+        // ✅ Initialize Everything on Page Load
+        window.onload = async () => {
+            await loadMetadata();
+            fetchDocuments();
+        };
         
-        
-
-        function resetFilters() {
-            collegeFilter = '';
-            subjectFilter = '';
-            codeFilter = '';
-            document.getElementById('college-filter').textContent = 'Select College';
-            document.getElementById('subject-filter').textContent = 'Select Subject';
-            document.getElementById('code-filter').textContent = 'Select Course Code';
-            document.getElementById('search-input').value = '';
-            filterQuestions();
-        }
-
-        function updateFilters() {
-            colleges = Array.from(new Set(questions.map(q => q.college)));
-            subjects = Array.from(new Set(questions.map(q => q.subject)));
-            courseCodes = Array.from(new Set(questions.map(q => q.code)));
-        }
-
-        // Initial render
-        updateFilters();
-        renderQuestions(questions);
-
-        function handleFileSelect(files) {
-            const file = files[0];
-            if (!file) return;
-        
-            const preview = document.getElementById('file-preview');
-            preview.innerHTML = '';
-            preview.style.display = 'block';
-        
-            // Create a URL for the file
-            const fileURL = URL.createObjectURL(file);
-        
-            if (file.type === 'application/pdf') {
-                preview.innerHTML = `<iframe src="${fileURL}" width="100%" height="300px"></iframe>`;
-            } else if (file.type.startsWith('image/')) {
-                preview.innerHTML = `<img src="${fileURL}" style="max-width: 100%; height: auto;">`;
+        // ✅ Attach Event Listeners for Filters
+        document.getElementById('college-filter').onclick = () => showFilterModal('College', colleges);
+        document.getElementById('subject-filter').onclick = () => showFilterModal('Subject', subjects);
+        document.getElementById('code-filter').onclick = () => showFilterModal('Course Code', courseCodes);
+        document.getElementById('reset-filters').onclick = resetFilters;
+        document.getElementById('search-input').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();  // Prevent default form submission
+                filterQuestions();
             }
-        }
-        
-        // Ensure preview updates when a file is selected
-        document.getElementById('file-upload').addEventListener('change', function () {
-            handleFileSelect(this.files);
         });
         
         
-        // Ensure file preview works
-        document.getElementById('file-upload').addEventListener('change', function () {
-            handleFileSelect(this.files);
-        });
-
-
-        function changeFile() {
-            document.getElementById('file-upload').click();
-        }
-
-        function deleteFile() {
-            const fileInput = document.getElementById('file-upload');
-            const preview = document.getElementById('file-preview');
-            const fileName = document.getElementById('file-name');
-            const changeFileBtn = document.getElementById('change-file');
-            const deleteFileBtn = document.getElementById('delete-file');
-            const uploadLabel = document.getElementById('upload-label');
-
-            fileInput.value = '';
-            preview.innerHTML = '';
-            preview.style.display = 'none';
-            fileName.textContent = '';
-            changeFileBtn.style.display = 'none';
-            deleteFileBtn.style.display = 'none';
-            uploadLabel.textContent = 'Choose a file or drag it here';
-        }
-
-        // Add drag and drop functionality
-        const fileUploadContainer = document.querySelector('.file-upload');
-
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            fileUploadContainer.addEventListener(eventName, preventDefaults, false);
-        });
-
-        function preventDefaults(e) {
-            e.preventDefault();
-            e.stopPropagation();
-        }
-
-        ['dragenter', 'dragover'].forEach(eventName => {
-            fileUploadContainer.addEventListener(eventName, highlight, false);
-        });
-
-        ['dragleave', 'drop'].forEach(eventName => {
-            fileUploadContainer.addEventListener(eventName, unhighlight, false);
-        });
-
-        function highlight() {
-            fileUploadContainer.classList.add('dragover');
-        }
-
-        function unhighlight() {
-            fileUploadContainer.classList.remove('dragover');
-        }
-
-        fileUploadContainer.addEventListener('drop', handleDrop, false);
-
-        function handleDrop(e) {
-            const dt = e.dataTransfer;
-            const files = dt.files;
-            handleFileSelect(files);
-        }
-
-        const fileUploadInput = document.getElementById('file-upload');
-        if (fileUploadInput) {
-        fileUploadInput.addEventListener('change', (event) => {
-        handleFileSelect(event.target.files);
-    });
-}
-
-// fetch Documents
-
-async function fetchDocuments() {
-    try {
-        const response = await fetch('/fetch-documents');  // Call API
-        const data = await response.json();
-
-        if (response.ok) {
-            const questionsContainer = document.getElementById('questions-container');
-            questionsContainer.innerHTML = '';  // Clear existing content
-
-            const documents = [...data.notes, ...data.questions];  // Merge both collections
-
-            documents.forEach(doc => {
-                const card = document.createElement('div');
-                card.className = 'question-card';
-                card.innerHTML = `
-                    <h3>${doc.paper_name} (${doc.paper_code})</h3>
-                    <p>College: ${doc.college}</p>
-                    <p>Year: ${doc.paper_year}, Semester: ${doc.semester}</p>
-                    <p>Type: ${doc.type}</p>
-                    <div class="buttons">
-                        <button class="view-btn" onclick="viewContent('${doc.file_url}')">View</button>
-                        <button class="download-btn" onclick="downloadContent('${doc.file_url}')">Download</button>
-                    </div>
-                `;
-                questionsContainer.appendChild(card);
-            });
-        } else {
-            console.error('Error fetching documents:', data.error);
-        }
-    } catch (error) {
-        console.error('Fetch error:', error);
-    }
-}
-
-// Call the function on page load
-window.onload = fetchDocuments;
-
-
     </script>
 </body>
 </html>
