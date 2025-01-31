@@ -18,6 +18,20 @@
             background-color: #f4f4f4;
         }
 
+        #scroll-to-top {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            display: none;
+        }
+        
+
         .container {
             max-width: 1200px;
             margin: 0 auto;
@@ -308,10 +322,88 @@
             margin-top: 10px;
             font-weight: bold;
         }
+
+        /* Skeleton loader styles */
+        .skeleton {
+            animation: skeleton-loading 1s linear infinite alternate;
+        }
+
+        @keyframes skeleton-loading {
+            0% {
+                background-color: hsl(200, 20%, 80%);
+            }
+            100% {
+                background-color: hsl(200, 20%, 95%);
+            }
+        }
+
+        .skeleton-text {
+            width: 100%;
+            height: 0.7rem;
+            margin-bottom: 0.5rem;
+            border-radius: 0.25rem;
+        }
+
+        .skeleton-text:last-child {
+            width: 80%;
+        }
+
+        #skeleton-loader {
+            display: block;
+        }
+
+        #content {
+            display: none;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
+    <div id="skeleton-loader">
+        <div class="container">
+            <h1 class="skeleton skeleton-text" style="height: 2rem; width: 50%; margin: 20px auto;"></h1>
+            <div class="search-filter-container">
+                <div class="skeleton skeleton-text" style="height: 2.5rem;"></div>
+                <div class="filter-buttons">
+                    <div class="skeleton skeleton-text" style="height: 2.5rem; width: 120px; display: inline-block; margin-right: 10px;"></div>
+                    <div class="skeleton skeleton-text" style="height: 2.5rem; width: 120px; display: inline-block; margin-right: 10px;"></div>
+                    <div class="skeleton skeleton-text" style="height: 2.5rem; width: 120px; display: inline-block; margin-right: 10px;"></div>
+                    <div class="skeleton skeleton-text" style="height: 2.5rem; width: 120px; display: inline-block;"></div>
+                </div>
+            </div>
+            <div class="question-card skeleton">
+                <div class="skeleton-text" style="height: 1.5rem; width: 70%;"></div>
+                <div class="skeleton-text"></div>
+                <div class="skeleton-text"></div>
+                <div class="skeleton-text"></div>
+                <div class="buttons">
+                    <div class="skeleton skeleton-text" style="height: 2rem; width: 80px; display: inline-block; margin-right: 10px;"></div>
+                    <div class="skeleton skeleton-text" style="height: 2rem; width: 80px; display: inline-block;"></div>
+                </div>
+            </div>
+            <div class="question-card skeleton">
+                <div class="skeleton-text" style="height: 1.5rem; width: 70%;"></div>
+                <div class="skeleton-text"></div>
+                <div class="skeleton-text"></div>
+                <div class="skeleton-text"></div>
+                <div class="buttons">
+                    <div class="skeleton skeleton-text" style="height: 2rem; width: 80px; display: inline-block; margin-right: 10px;"></div>
+                    <div class="skeleton skeleton-text" style="height: 2rem; width: 80px; display: inline-block;"></div>
+                </div>
+            </div>
+            <div class="question-card skeleton">
+                <div class="skeleton-text" style="height: 1.5rem; width: 70%;"></div>
+                <div class="skeleton-text"></div>
+                <div class="skeleton-text"></div>
+                <div class="skeleton-text"></div>
+                <div class="buttons">
+                    <div class="skeleton skeleton-text" style="height: 2rem; width: 80px; display: inline-block; margin-right: 10px;"></div>
+                    <div class="skeleton skeleton-text" style="height: 2rem; width: 80px; display: inline-block;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="content" class="container">
         <h1>Previous Year Questions</h1>
         
         <div class="search-filter-container">
@@ -327,6 +419,7 @@
         </div>
 
         <div id="questions-container"></div>
+        <button id="scroll-to-top" onclick="scrollToTop()">⬆ Scroll to Top</button>
     </div>
 
     <div id="filter-modal" class="modal">
@@ -336,6 +429,8 @@
             <ul id="filter-list"></ul>
         </div>
     </div>
+
+    
 
     <div id="upload-modal" class="modal">
         <div class="modal-content">
@@ -433,21 +528,25 @@
             });
         }
         
+        
         // ✅ Search Function
         function filterQuestions() {
             const searchTerm = document.getElementById('search-input').value.toLowerCase();
         
+            if (searchTerm === '') {
+                renderQuestions(questions); // Restore all results when search is cleared
+                return;
+            }
+        
             const filtered = questions.filter(q =>
-                (!collegeFilter || q.college === collegeFilter) &&
-                (!subjectFilter || q.paper_name === subjectFilter) &&
-                (!codeFilter || q.paper_code === codeFilter) &&
-                (q.paper_name?.toLowerCase().includes(searchTerm) ||
-                 q.paper_code?.toLowerCase().includes(searchTerm) ||
-                 q.college?.toLowerCase().includes(searchTerm))
+                q.paper_name?.toLowerCase().includes(searchTerm) ||
+                q.paper_code?.toLowerCase().includes(searchTerm) ||
+                q.college?.toLowerCase().includes(searchTerm)
             );
         
             renderQuestions(filtered);
         }
+        
         
         // ✅ Fetch Documents from Backend
         async function fetchDocuments() {
@@ -458,7 +557,7 @@
                 if (response.ok) {
                     questions = [...data.notes, ...data.questions];
                     updateFilters();
-                    renderQuestions(questions);
+                    renderQuestions(questions.reverse()); // Show older content first, new at the bottom
                 } else {
                     console.error('Error fetching documents:', data.error);
                 }
@@ -466,6 +565,7 @@
                 console.error('Fetch error:', error);
             }
         }
+        
         
         // ✅ Fetch Metadata for Filters
         async function loadMetadata() {
@@ -498,70 +598,103 @@
             });
         }
         
-        // ✅ Show Filter Modal
-
-        document.getElementById('college-filter').onclick = () => showFilterModal('College', colleges);
-        document.getElementById('subject-filter').onclick = () => showFilterModal('Subject', subjects);
-        document.getElementById('code-filter').onclick = () => showFilterModal('Course Code', courseCodes);
+       // ✅ Open the Filter Modal
+        document.getElementById('college-filter').addEventListener('click', () => showFilterModal('College', colleges));
+        document.getElementById('subject-filter').addEventListener('click', () => showFilterModal('Subject', subjects));
+        document.getElementById('code-filter').addEventListener('click', () => showFilterModal('Course Code', courseCodes));
 
         function showFilterModal(filterType, items) {
             const modal = document.getElementById('filter-modal');
             const title = document.getElementById('filter-modal-title');
             const list = document.getElementById('filter-list');
             const search = document.getElementById('filter-search');
-        
+
             title.textContent = `Select ${filterType}`;
             list.innerHTML = '';
-        
-            items.forEach(item => {
-                const li = document.createElement('li');
-                li.textContent = item;
-                li.onclick = () => {
-                    if (filterType === 'College') {
-                        collegeFilter = item;
-                        document.getElementById('college-filter').textContent = item;
-                    }
-                    if (filterType === 'Subject') {
-                        subjectFilter = item;
-                        document.getElementById('subject-filter').textContent = item;
-                    }
-                    if (filterType === 'Course Code') {
-                        codeFilter = item;
-                        document.getElementById('code-filter').textContent = item;
-                    }
-        
-                    modal.style.display = 'none';
-                    filterQuestions();
-                };
-                list.appendChild(li);
-            });
-        
+
+            if (items.length === 0) {
+                list.innerHTML = `<li style="text-align:center;">No options available</li>`;
+            } else {
+                items.forEach(item => {
+                    const li = document.createElement('li');
+                    li.textContent = item;
+                    li.onclick = () => {
+                        if (filterType === 'College') {
+                            collegeFilter = item;
+                            document.getElementById('college-filter').textContent = item;
+                        }
+                        if (filterType === 'Subject') {
+                            subjectFilter = item;
+                            document.getElementById('subject-filter').textContent = item;
+                        }
+                        if (filterType === 'Course Code') {
+                            codeFilter = item;
+                            document.getElementById('code-filter').textContent = item;
+                        }
+
+                        modal.style.display = 'none';
+                        filterQuestions(); // Apply filtering after selection
+                    };
+                    list.appendChild(li);
+                });
+            }
+
             search.oninput = () => {
                 const searchTerm = search.value.toLowerCase();
                 Array.from(list.children).forEach(li => {
                     li.style.display = li.textContent.toLowerCase().includes(searchTerm) ? '' : 'none';
                 });
             };
-        
-            modal.style.display = 'block';
-        }
-        
-        
-        // ✅ Reset Filters
-        document.getElementById('reset-filters').onclick = resetFilters;
 
-        function resetFilters() {
-            collegeFilter = '';
-            subjectFilter = '';
-            codeFilter = '';
-            
-            document.getElementById('college-filter').textContent = 'Select College';
-            document.getElementById('subject-filter').textContent = 'Select Subject';
-            document.getElementById('code-filter').textContent = 'Select Course Code';
-            document.getElementById('search-input').value = '';
-        
-            filterQuestions(); // Re-run search to show all results
+            modal.style.display = 'block'; // ✅ Ensure the modal is displayed
         }
+
+
+        // ✅ Close Filter Modal When Clicking Outside
+        document.addEventListener('click', function(event) {
+            const modal = document.getElementById('filter-modal');
+            const modalContent = document.querySelector('#filter-modal .modal-content');
+
+            if (modal && modal.style.display === 'block' && !modalContent.contains(event.target) && !event.target.classList.contains('filter-button')) {
+                modal.style.display = 'none';
+            }
+        });
+
+
+        // ✅ Apply Filtering Based on Selected Filters
+        function filterQuestions() {
+            const searchTerm = document.getElementById('search-input').value.toLowerCase();
+
+            const filtered = questions.filter(q =>
+                (!collegeFilter || q.college === collegeFilter) &&
+                (!subjectFilter || q.paper_name === subjectFilter) &&
+                (!codeFilter || q.paper_code === codeFilter) &&
+                (searchTerm === '' || q.paper_name?.toLowerCase().includes(searchTerm) || 
+                q.paper_code?.toLowerCase().includes(searchTerm) || 
+                q.college?.toLowerCase().includes(searchTerm))
+            );
+
+            renderQuestions(filtered);
+        }
+
+
+            // ✅ Reset Filters
+            document.getElementById('reset-filters').onclick = resetFilters;
+
+            function resetFilters() {
+                collegeFilter = '';
+                subjectFilter = '';
+                codeFilter = '';
+
+                document.getElementById('college-filter').textContent = 'Select College';
+                document.getElementById('subject-filter').textContent = 'Select Subject';
+                document.getElementById('code-filter').textContent = 'Select Course Code';
+                document.getElementById('search-input').value = '';
+
+                filterQuestions(); // Reset filtered view
+            }
+
+
         
         
         // ✅ Update Filters Dynamically
@@ -651,8 +784,18 @@
         
         // ✅ Initialize Everything on Page Load
         window.onload = async () => {
-            await loadMetadata();
-            fetchDocuments();
+            try {
+                await loadMetadata();
+                await fetchDocuments();
+                // Hide skeleton and show content
+                document.getElementById('skeleton-loader').style.display = 'none';
+                document.getElementById('content').style.display = 'block';
+            } catch (error) {
+                console.error('Error loading page:', error);
+                // In case of error, still hide skeleton and show content
+                document.getElementById('skeleton-loader').style.display = 'none';
+                document.getElementById('content').style.display = 'block';
+            }
         };
         
         // ✅ Attach Event Listeners for Filters
@@ -660,15 +803,30 @@
         document.getElementById('subject-filter').onclick = () => showFilterModal('Subject', subjects);
         document.getElementById('code-filter').onclick = () => showFilterModal('Course Code', courseCodes);
         document.getElementById('reset-filters').onclick = resetFilters;
-        document.getElementById('search-input').addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();  // Prevent default form submission
+        document.getElementById('search-input').addEventListener('input', function () {
+            if (this.value.trim() === '') {
+                renderQuestions(questions); // Restore initial page when input is cleared
+            } else {
                 filterQuestions();
             }
         });
         
+
+        //scroll to top
+        window.onscroll = function() {
+            const scrollToTopBtn = document.getElementById('scroll-to-top');
+            if (document.documentElement.scrollTop > 100) {
+                scrollToTopBtn.style.display = 'block';
+            } else {
+                scrollToTopBtn.style.display = 'none';
+            }
+        };
+        
+        function scrollToTop() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+                
         
     </script>
 </body>
 </html>
-
