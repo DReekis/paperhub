@@ -3,8 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Previous Year Questions</title>
+    <title>Previous Year Questions v2</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --background: #f3f4f6;
+            --card-background: #ffffff;
+            --text: #1f2937;
+            --text-secondary: #6b7280;
+            --border: #e5e7eb;
+            --success: #10b981;
+        }
+
         * {
             box-sizing: border-box;
             margin: 0;
@@ -12,25 +24,11 @@
         }
 
         body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            background-color: #f4f4f4;
+            font-family: 'Inter', sans-serif;
+            line-height: 1.5;
+            color: var(--text);
+            background-color: var(--background);
         }
-
-        #scroll-to-top {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-            display: none;
-        }
-        
 
         .container {
             max-width: 1200px;
@@ -38,90 +36,133 @@
             padding: 20px;
         }
 
+        header {
+            background-color: var(--card-background);
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            padding: 1rem 0;
+            margin-bottom: 1rem;
+        }
+
         h1 {
             text-align: center;
-            margin-bottom: 20px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
         }
 
         .search-filter-container {
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 20px;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
         }
 
         #search-input {
-            flex-grow: 1;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+            flex: 1;
+            min-width: 200px;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: 0.375rem;
+            font-size: 1rem;
         }
 
         .filter-buttons {
             display: flex;
-            gap: 10px;
+            gap: 0.5rem;
         }
 
-        .filter-button, #upload-button {
-            padding: 10px;
-            background-color: #fff;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+        button {
+            padding: 0.75rem 1rem;
+            background-color: var(--card-background);
+            border: 1px solid var(--border);
+            border-radius: 0.375rem;
             cursor: pointer;
-            transition: background-color 0.3s;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
         }
 
-        .filter-button:hover, #upload-button:hover {
-            background-color: #f0f0f0;
+        button:hover {
+            background-color: var(--background);
         }
 
         #upload-button {
-            background-color: #4CAF50;
+            background-color: var(--primary);
             color: white;
             border: none;
         }
 
         #upload-button:hover {
-            background-color: #45a049;
+            background-color: var(--primary-hover);
+        }
+
+        #questions-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1rem;
         }
 
         .question-card {
-            background-color: #fff;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            background-color: var(--card-background);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            transition: all 0.2s ease;
+        }
+
+        .question-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
 
         .question-card h3 {
-            margin-bottom: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
         }
 
         .question-card p {
-            margin-bottom: 5px;
-            color: #666;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.25rem;
+        }
+
+        .question-card .content-type {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            background-color: #e0f2f1;
+            color: #00796b;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
         }
 
         .question-card .buttons {
-            margin-top: 15px;
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
         }
 
         .question-card button {
-            padding: 8px 16px;
-            margin-right: 10px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
+            flex: 1;
+            padding: 0.5rem;
+            font-size: 0.875rem;
         }
 
-        .question-card .view-btn {
-            background-color: #f0f0f0;
-            color: #333;
+        #view-button:hover{
+            background-color: var(--primary-hover);
+            color: #ffffff;
         }
 
-        .question-card .download-btn {
-            background-color: #4CAF50;
-            color: white;
+        #download-button{
+            background-color: rgb(48, 209, 88);
+            color: #1f2937;
+            
+        }
+
+        #download-button:hover{
+            background-color: rgb(49 , 222, 75);
         }
 
         .modal {
@@ -137,21 +178,41 @@
         }
 
         .modal-content {
-            background-color: #fefefe;
+            background-color: var(--card-background);
             margin: 15% auto;
-            padding: 20px;
-            border: 1px solid #888;
-            width: 80%;
+            padding: 1.5rem;
+            border: 1px solid var(--border);
+            width: 90%;
             max-width: 500px;
-            border-radius: 8px;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            position: relative;
         }
+
+        .close-btn {
+            color: var(--text-secondary);
+            float: right;
+            font-size: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            position: absolute;
+            top: 0.5rem;
+            right: 1rem;
+        }
+
+        .close-btn:hover,
+        .close-btn:focus {
+            color: var(--text);
+            text-decoration: none;
+        }
+
 
         #filter-search {
             width: 100%;
-            padding: 10px;
-            margin-bottom: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+            padding: 0.75rem 1rem;
+            margin-bottom: 1rem;
+            border: 1px solid var(--border);
+            border-radius: 0.375rem;
         }
 
         #filter-list {
@@ -161,18 +222,18 @@
         }
 
         #filter-list li {
-            padding: 10px;
+            padding: 0.75rem;
             cursor: pointer;
-            transition: background-color 0.3s;
+            transition: background-color 0.2s ease;
         }
 
         #filter-list li:hover {
-            background-color: #f0f0f0;
+            background-color: var(--background);
         }
 
         #upload-form {
             display: grid;
-            gap: 15px;
+            gap: 1rem;
         }
 
         .form-group {
@@ -181,260 +242,105 @@
         }
 
         .form-group label {
-            margin-bottom: 5px;
+            margin-bottom: 0.25rem;
+            font-size: 0.875rem;
+            font-weight: 500;
         }
 
         .form-group input,
         .form-group select,
         .form-group textarea {
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-
-        .close-btn {
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .close-btn:hover {
-            color: #000;
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 0.375rem;
+            font-size: 1rem;
         }
 
         #success-message {
             display: none;
-            background-color: #4CAF50;
+            background-color: var(--success);
             color: white;
             text-align: center;
-            padding: 20px;
+            padding: 1rem;
             position: fixed;
-            top: 50%;
+            top: 1rem;
             left: 50%;
-            transform: translate(-50%, -50%);
-            border-radius: 5px;
+            transform: translateX(-50%);
+            border-radius: 0.375rem;
             z-index: 1000;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
 
-        #reset-filters {
-            background-color: #f44336;
+        #scroll-to-top {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: var(--primary);
             color: white;
             border: none;
+            padding: 0.75rem;
+            border-radius: 50%;
+            cursor: pointer;
+            display: none;
+            font-size: 1.25rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
 
-        #reset-filters:hover {
-            background-color: #d32f2f;
-        }
-
-        @media (max-width: 768px) {
+        @media (min-width: 640px) {
             .search-filter-container {
-                flex-direction: column;
+                flex-wrap: nowrap;
+            }
+
+            #search-input {
+                max-width: 90%;
             }
 
             .filter-buttons {
-                flex-direction: column;
-                width: 100%;
+                flex: 0 0 auto;
             }
 
-            .filter-button, #upload-button {
-                width: 100%;
+            #upload-button, #filters-button {
+                width: 100px;
+                max-height: 50px;
+                border-radius: 5px;
             }
 
-            .modal-content {
-                width: 95%;
-                margin: 10% auto;
+            h1 {
+                font-size: 2rem;
             }
-        }
-
-        .file-upload {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-bottom: 20px;
-            border: 2px dashed #ccc;
-            border-radius: 8px;
-            padding: 20px;
-            text-align: center;
-            transition: border-color 0.3s ease;
-        }
-
-        .file-upload.dragover {
-            border-color: #4CAF50;
-        }
-
-        .file-upload input[type="file"] {
-            display: none;
-        }
-
-        .file-upload label {
-            padding: 10px 20px;
-            background-color: #4CAF50;
-            color: white;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-
-        .file-upload label:hover {
-            background-color: #45a049;
-        }
-
-        .file-preview {
-            margin-top: 20px;
-            max-width: 100%;
-            display: none;
-        }
-
-        .file-preview img {
-            max-width: 100%;
-            max-height: 300px;
-            object-fit: contain;
-        }
-
-        .file-preview iframe {
-            width: 100%;
-            height: 300px;
-            border: none;
-        }
-
-        .file-actions {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-top: 10px;
-        }
-
-        .file-actions button {
-            padding: 5px 10px;
-            background-color: #f0f0f0;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-
-        .file-actions button:hover {
-            background-color: #e0e0e0;
-        }
-
-        .file-name {
-            margin-top: 10px;
-            font-weight: bold;
-        }
-
-        /* Skeleton loader styles */
-        .skeleton {
-            animation: skeleton-loading 1s linear infinite alternate;
-        }
-
-        @keyframes skeleton-loading {
-            0% {
-                background-color: hsl(200, 20%, 80%);
-            }
-            100% {
-                background-color: hsl(200, 20%, 95%);
-            }
-        }
-
-        .skeleton-text {
-            width: 100%;
-            height: 0.7rem;
-            margin-bottom: 0.5rem;
-            border-radius: 0.25rem;
-        }
-
-        .skeleton-text:last-child {
-            width: 80%;
-        }
-
-        #skeleton-loader {
-            display: block;
-        }
-
-        #content {
-            display: none;
         }
     </style>
 </head>
 <body>
-    <div id="skeleton-loader">
+    <header>
         <div class="container">
-            <h1 class="skeleton skeleton-text" style="height: 2rem; width: 50%; margin: 20px auto;"></h1>
-            <div class="search-filter-container">
-                <div class="skeleton skeleton-text" style="height: 2.5rem;"></div>
-                <div class="filter-buttons">
-                    <div class="skeleton skeleton-text" style="height: 2.5rem; width: 120px; display: inline-block; margin-right: 10px;"></div>
-                    <div class="skeleton skeleton-text" style="height: 2.5rem; width: 120px; display: inline-block; margin-right: 10px;"></div>
-                    <div class="skeleton skeleton-text" style="height: 2.5rem; width: 120px; display: inline-block; margin-right: 10px;"></div>
-                    <div class="skeleton skeleton-text" style="height: 2.5rem; width: 120px; display: inline-block;"></div>
-                </div>
-            </div>
-            <div class="question-card skeleton">
-                <div class="skeleton-text" style="height: 1.5rem; width: 70%;"></div>
-                <div class="skeleton-text"></div>
-                <div class="skeleton-text"></div>
-                <div class="skeleton-text"></div>
-                <div class="buttons">
-                    <div class="skeleton skeleton-text" style="height: 2rem; width: 80px; display: inline-block; margin-right: 10px;"></div>
-                    <div class="skeleton skeleton-text" style="height: 2rem; width: 80px; display: inline-block;"></div>
-                </div>
-            </div>
-            <div class="question-card skeleton">
-                <div class="skeleton-text" style="height: 1.5rem; width: 70%;"></div>
-                <div class="skeleton-text"></div>
-                <div class="skeleton-text"></div>
-                <div class="skeleton-text"></div>
-                <div class="buttons">
-                    <div class="skeleton skeleton-text" style="height: 2rem; width: 80px; display: inline-block; margin-right: 10px;"></div>
-                    <div class="skeleton skeleton-text" style="height: 2rem; width: 80px; display: inline-block;"></div>
-                </div>
-            </div>
-            <div class="question-card skeleton">
-                <div class="skeleton-text" style="height: 1.5rem; width: 70%;"></div>
-                <div class="skeleton-text"></div>
-                <div class="skeleton-text"></div>
-                <div class="skeleton-text"></div>
-                <div class="buttons">
-                    <div class="skeleton skeleton-text" style="height: 2rem; width: 80px; display: inline-block; margin-right: 10px;"></div>
-                    <div class="skeleton skeleton-text" style="height: 2rem; width: 80px; display: inline-block;"></div>
-                </div>
-            </div>
+            <h1>This is your hub, This is <b style="color: #FFAC1C;">PaperHub</b> </h1>
         </div>
-    </div>
+    </header>
 
-    <div id="content" class="container">
-        <h1>Previous Year Questions</h1>
-        
+    <main class="container">
         <div class="search-filter-container">
             <input type="text" id="search-input" placeholder="Search for college, subject, or course code">
             <div class="filter-buttons">
-                <button id="college-filter" class="filter-button">Select College</button>
-                <button id="subject-filter" class="filter-button">Select Subject</button>
-                <button id="code-filter" class="filter-button">Select Course Code</button>
-                <button id="reset-filters" class="filter-button reset-button">Reset Filters</button>
+                <button id="filters-button">Filters</button>
+                <button id="upload-button" class="upload-btn">Upload</button>
             </div>
-            
-            <button id="upload-button" class="upload-btn">Upload</button>
         </div>
-
         <div id="questions-container"></div>
-        <button id="scroll-to-top" onclick="scrollToTop()">⬆ Scroll to Top</button>
-    </div>
+    </main>
 
     <div id="filter-modal" class="modal">
         <div class="modal-content">
+            <span class="close-btn">&times;</span>
             <h2 id="filter-modal-title"></h2>
             <input type="text" id="filter-search" placeholder="Search...">
             <ul id="filter-list"></ul>
         </div>
     </div>
 
-    
-
     <div id="upload-modal" class="modal">
         <div class="modal-content">
-            <span class="close-btn" onclick="closeUploadModal()">&times;</span>
+            <span class="close-btn">&times;</span>
             <h2>Upload New Document</h2>
             <form id="upload-form">
                 <div class="form-group">
@@ -448,7 +354,11 @@
                         <option value="1st">1st</option>
                         <option value="2nd">2nd</option>
                         <option value="3rd">3rd</option>
-                        <!-- Add remaining options -->
+                        <option value="4th">4th</option>
+                        <option value="5th">5th</option>
+                        <option value="6th">6th</option>
+                        <option value="7th">7th</option>
+                        <option value="8th">8th</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -475,89 +385,128 @@
                     <label for="trade">Trade</label>
                     <input type="text" id="trade" name="trade" required>
                 </div>
-                <div class="form-group file-upload">
+                <div class="form-group">
                     <label for="file-upload">Upload File</label>
                     <input type="file" id="file-upload" name="file-upload" accept=".pdf" required>
                 </div>
-                <div class="file-preview" id="file-preview"></div>
                 <button type="submit">Upload Document</button>
             </form>
-            
         </div>
     </div>
 
-    <div id="success-message">
-        <h2>You are a hero now!</h2>
-        <p>Your document has been successfully uploaded.</p>
+    <div id="filters-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2>Filters</h2>
+            <div class="form-group">
+                <label for="college-filter">College</label>
+                <select id="college-filter">
+                    <option value="">All Colleges</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="subject-filter">Subject</label>
+                <select id="subject-filter">
+                    <option value="">All Subjects</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="code-filter">Code</label>
+                <select id="code-filter">
+                    <option value="">All Codes</option>
+                </select>
+            </div>
+            <button id="apply-filters">Apply Filters</button>
+            <button id="reset-filters">Reset Filters</button>
+        </div>
     </div>
+
+    <div id="pdf-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closePdfModal()">&times;</span>
+            <iframe class="lazy-load" data-src="" width="100%" height="400px"></iframe>
+
+        </div>
+    </div>
+
+
+
+    
+
+    <div id="success-message">
+        <h2>Document Uploaded Successfully!</h2>
+    </div>
+
+    <button id="scroll-to-top" onclick="scrollToTop()">↑</button>
 
     <script>
         let questions = [];
         let colleges = [];
         let subjects = [];
         let courseCodes = [];
-        
+
         let collegeFilter = '';
         let subjectFilter = '';
         let codeFilter = '';
-        
-        // ✅ Render Questions on Page
+
+        // Render Questions on Page
         function renderQuestions(filteredQuestions) {
             const container = document.getElementById('questions-container');
             container.innerHTML = '';
-        
+
             if (filteredQuestions.length === 0) {
-                container.innerHTML = `<p style="text-align: center;">No results found</p>`;
+                container.innerHTML = `<p style="text-align: center; grid-column: 1 / -1;">No results found</p>`;
                 return;
             }
-        
+
             filteredQuestions.forEach(q => {
                 const card = document.createElement('div');
                 card.className = 'question-card';
                 card.innerHTML = `
-                    <h3>${q.paper_name} (${q.paper_code})</h3>
-                    <p>College: ${q.college}</p>
-                    <p>Year: ${q.paper_year}, Semester: ${q.semester}</p>
-                    <p>Type: ${q.type}</p>
+                    <div class="content-type">${q.type}</div>
+                    <h3>${q.paper_name}</h3>
+                    <p><strong>Code:</strong> ${q.paper_code}</p>
+                    <p><strong>College:</strong> ${q.college}</p>
+                    <p><strong>Year:</strong> ${q.paper_year}, <strong>Semester:</strong> ${q.semester}</p>
                     <div class="buttons">
-                        <button class="view-btn" onclick="viewContent('${q.file_url}')">View</button>
-                        <button class="download-btn" onclick="downloadContent('${q.file_url}')">Download</button>
+                        <button onclick="viewContent('${q.file_url}')" id = "view-button">View</button>
+                        <button onclick="downloadContent('${q.file_url}')" id="download-button">Download</button>
                     </div>
                 `;
                 container.appendChild(card);
             });
         }
-        
-        
-        // ✅ Search Function
+
+        // Search Function
         function filterQuestions() {
             const searchTerm = document.getElementById('search-input').value.toLowerCase();
-        
-            if (searchTerm === '') {
-                renderQuestions(questions); // Restore all results when search is cleared
-                return;
-            }
-        
+            const collegeFilter = document.getElementById('college-filter').value;
+            const subjectFilter = document.getElementById('subject-filter').value;
+            const codeFilter = document.getElementById('code-filter').value;
+
             const filtered = questions.filter(q =>
-                q.paper_name?.toLowerCase().includes(searchTerm) ||
-                q.paper_code?.toLowerCase().includes(searchTerm) ||
-                q.college?.toLowerCase().includes(searchTerm)
+                (!collegeFilter || q.college === collegeFilter) &&
+                (!subjectFilter || q.paper_name === subjectFilter) &&
+                (!codeFilter || q.paper_code === codeFilter) &&
+                (searchTerm === '' ||
+                 q.paper_name?.toLowerCase().includes(searchTerm) ||
+                 q.paper_code?.toLowerCase().includes(searchTerm) ||
+                 q.college?.toLowerCase().includes(searchTerm))
             );
-        
+
             renderQuestions(filtered);
         }
-        
-        
-        // ✅ Fetch Documents from Backend
+
+        // Fetch Documents from Backend
         async function fetchDocuments() {
             try {
                 const response = await fetch('/fetch-documents');
                 const data = await response.json();
-        
+
                 if (response.ok) {
                     questions = [...data.notes, ...data.questions];
                     updateFilters();
-                    renderQuestions(questions.reverse()); // Show older content first, new at the bottom
+                    renderQuestions(questions.reverse());
                 } else {
                     console.error('Error fetching documents:', data.error);
                 }
@@ -565,189 +514,50 @@
                 console.error('Fetch error:', error);
             }
         }
-        
-        
-        // ✅ Fetch Metadata for Filters
-        async function loadMetadata() {
-            try {
-                const response = await fetch('/get-metadata');
-                const data = await response.json();
-        
-                if (response.ok) {
-                    populateDropdown('college-filter', data.colleges);
-                    populateDropdown('subject-filter', data.course_names);
-                    populateDropdown('code-filter', data.course_codes);
-                } else {
-                    console.error("Error loading metadata:", data.error);
-                }
-            } catch (error) {
-                console.error("Error loading metadata:", error);
-            }
-        }
-        
-        // ✅ Populate Dropdown Filters
-        function populateDropdown(dropdownId, values) {
-            const dropdown = document.getElementById(dropdownId);
-            dropdown.innerHTML = `<option value="">Select ${dropdownId.replace('-filter', '').replace('-', ' ')}</option>`;
-        
-            values.forEach(value => {
-                const option = document.createElement('option');
-                option.value = value;
-                option.textContent = value;
-                dropdown.appendChild(option);
-            });
-        }
-        
-       // ✅ Open the Filter Modal
-        document.getElementById('college-filter').addEventListener('click', () => showFilterModal('College', colleges));
-        document.getElementById('subject-filter').addEventListener('click', () => showFilterModal('Subject', subjects));
-        document.getElementById('code-filter').addEventListener('click', () => showFilterModal('Course Code', courseCodes));
 
-        function showFilterModal(filterType, items) {
-            const modal = document.getElementById('filter-modal');
-            const title = document.getElementById('filter-modal-title');
-            const list = document.getElementById('filter-list');
-            const search = document.getElementById('filter-search');
-
-            title.textContent = `Select ${filterType}`;
-            list.innerHTML = '';
-
-            if (items.length === 0) {
-                list.innerHTML = `<li style="text-align:center;">No options available</li>`;
-            } else {
-                items.forEach(item => {
-                    const li = document.createElement('li');
-                    li.textContent = item;
-                    li.onclick = () => {
-                        if (filterType === 'College') {
-                            collegeFilter = item;
-                            document.getElementById('college-filter').textContent = item;
-                        }
-                        if (filterType === 'Subject') {
-                            subjectFilter = item;
-                            document.getElementById('subject-filter').textContent = item;
-                        }
-                        if (filterType === 'Course Code') {
-                            codeFilter = item;
-                            document.getElementById('code-filter').textContent = item;
-                        }
-
-                        modal.style.display = 'none';
-                        filterQuestions(); // Apply filtering after selection
-                    };
-                    list.appendChild(li);
-                });
-            }
-
-            search.oninput = () => {
-                const searchTerm = search.value.toLowerCase();
-                Array.from(list.children).forEach(li => {
-                    li.style.display = li.textContent.toLowerCase().includes(searchTerm) ? '' : 'none';
-                });
-            };
-
-            modal.style.display = 'block'; // ✅ Ensure the modal is displayed
-        }
-
-
-        // ✅ Close Filter Modal When Clicking Outside
-        document.addEventListener('click', function(event) {
-            const modal = document.getElementById('filter-modal');
-            const modalContent = document.querySelector('#filter-modal .modal-content');
-
-            if (modal && modal.style.display === 'block' && !modalContent.contains(event.target) && !event.target.classList.contains('filter-button')) {
-                modal.style.display = 'none';
-            }
-        });
-
-
-        // ✅ Apply Filtering Based on Selected Filters
-        function filterQuestions() {
-            const searchTerm = document.getElementById('search-input').value.toLowerCase();
-
-            const filtered = questions.filter(q =>
-                (!collegeFilter || q.college === collegeFilter) &&
-                (!subjectFilter || q.paper_name === subjectFilter) &&
-                (!codeFilter || q.paper_code === codeFilter) &&
-                (searchTerm === '' || q.paper_name?.toLowerCase().includes(searchTerm) || 
-                q.paper_code?.toLowerCase().includes(searchTerm) || 
-                q.college?.toLowerCase().includes(searchTerm))
-            );
-
-            renderQuestions(filtered);
-        }
-
-
-            // ✅ Reset Filters
-            document.getElementById('reset-filters').onclick = resetFilters;
-
-            function resetFilters() {
-                collegeFilter = '';
-                subjectFilter = '';
-                codeFilter = '';
-
-                document.getElementById('college-filter').textContent = 'Select College';
-                document.getElementById('subject-filter').textContent = 'Select Subject';
-                document.getElementById('code-filter').textContent = 'Select Course Code';
-                document.getElementById('search-input').value = '';
-
-                filterQuestions(); // Reset filtered view
-            }
-
-
-        
-        
-        // ✅ Update Filters Dynamically
+        // Update Filters Dynamically
         function updateFilters() {
             colleges = Array.from(new Set(questions.map(q => q.college))).filter(Boolean);
             subjects = Array.from(new Set(questions.map(q => q.paper_name))).filter(Boolean);
             courseCodes = Array.from(new Set(questions.map(q => q.paper_code))).filter(Boolean);
-        
-            // Ensure default text appears when filters are empty
-            document.getElementById('college-filter').textContent = 'Select College';
-            document.getElementById('subject-filter').textContent = 'Select Subject';
-            document.getElementById('code-filter').textContent = 'Select Course Code';
+
+            const collegeSelect = document.getElementById('college-filter');
+            const subjectSelect = document.getElementById('subject-filter');
+            const codeSelect = document.getElementById('code-filter');
+
+            [collegeSelect, subjectSelect, codeSelect].forEach(select => {
+                select.innerHTML = `<option value="">All ${select.id.split('-')[0]}s</option>`;
+            });
+
+            colleges.forEach(college => {
+                collegeSelect.innerHTML += `<option value="${college}">${college}</option>`;
+            });
+
+            subjects.forEach(subject => {
+                subjectSelect.innerHTML += `<option value="${subject}">${subject}</option>`;
+            });
+
+            courseCodes.forEach(code => {
+                codeSelect.innerHTML += `<option value="${code}">${code}</option>`;
+            });
         }
-        
-        
-        // ✅ File Upload Preview
-        document.getElementById('file-upload').addEventListener('change', function () {
-            handleFileSelect(this.files);
-        });
-        
-        function handleFileSelect(files) {
-            const file = files[0];
-            if (!file) return;
-        
-            const preview = document.getElementById('file-preview');
-            preview.innerHTML = '';
-            preview.style.display = 'block';
-        
-            const fileURL = URL.createObjectURL(file);
-        
-            if (file.type === 'application/pdf') {
-                preview.innerHTML = `<iframe src="${fileURL}" width="100%" height="300px"></iframe>`;
-            } else if (file.type.startsWith('image/')) {
-                preview.innerHTML = `<img src="${fileURL}" style="max-width: 100%; height: auto;">`;
-            }
-        }
-        
-        // ✅ Upload Form Submission
+
+        // Upload Form Submission
         document.getElementById('upload-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const formData = new FormData(e.target);
-        
+
             try {
                 const response = await fetch('/upload', {
                     method: 'POST',
                     body: formData
                 });
-        
+
                 const result = await response.json();
                 if (response.ok) {
-                    alert('Upload successful!');
+                    showSuccessMessage();
                     document.getElementById('upload-modal').style.display = 'none';
-                    fetchDocuments(); // Refresh data after upload
+                    fetchDocuments();
                 } else {
                     alert(`Error: ${result.error}`);
                 }
@@ -756,77 +566,112 @@
             }
         });
 
-        //✅ Upload-button functionality
+        // Show Success Message
+        function showSuccessMessage() {
+            const message = document.getElementById('success-message');
+            message.style.display = 'block';
+            setTimeout(() => {
+                message.style.display = 'none';
+            }, 3000);
+        }
+
+        // Event Listeners
+        document.getElementById('filters-button').addEventListener('click', () => {
+            document.getElementById('filters-modal').style.display = 'block';
+        });
 
         document.getElementById('upload-button').addEventListener('click', () => {
-            const modal = document.getElementById('upload-modal');
-            if (modal) {
-                modal.style.display = 'block';
-            } else {
-                console.error("Upload modal not found.");
-            }
+            document.getElementById('upload-modal').style.display = 'block';
         });
-        
-        function closeUploadModal() {
-            document.getElementById('upload-modal').style.display = 'none';
-        }
-        
-        // Close when clicking outside the modal
-        window.onclick = function (event) {
-            const modal = document.getElementById('upload-modal');
-            if (event.target === modal) {
-                modal.style.display = 'none';
-            }
-        };
-        
-        
-        
-        
-        // ✅ Initialize Everything on Page Load
-        window.onload = async () => {
-            try {
-                await loadMetadata();
-                await fetchDocuments();
-                // Hide skeleton and show content
-                document.getElementById('skeleton-loader').style.display = 'none';
-                document.getElementById('content').style.display = 'block';
-            } catch (error) {
-                console.error('Error loading page:', error);
-                // In case of error, still hide skeleton and show content
-                document.getElementById('skeleton-loader').style.display = 'none';
-                document.getElementById('content').style.display = 'block';
-            }
-        };
-        
-        // ✅ Attach Event Listeners for Filters
-        document.getElementById('college-filter').onclick = () => showFilterModal('College', colleges);
-        document.getElementById('subject-filter').onclick = () => showFilterModal('Subject', subjects);
-        document.getElementById('code-filter').onclick = () => showFilterModal('Course Code', courseCodes);
-        document.getElementById('reset-filters').onclick = resetFilters;
+
+        document.getElementById('apply-filters').addEventListener('click', () => {
+            filterQuestions();
+            document.getElementById('filters-modal').style.display = 'none';
+        });
+
+        document.getElementById('reset-filters').addEventListener('click', () => {
+            document.getElementById('college-filter').value = '';
+            document.getElementById('subject-filter').value = '';
+            document.getElementById('code-filter').value = '';
+            filterQuestions();
+            document.getElementById('filters-modal').style.display = 'none';
+        });
+
+        let debounceTimer;
         document.getElementById('search-input').addEventListener('input', function () {
-            if (this.value.trim() === '') {
-                renderQuestions(questions); // Restore initial page when input is cleared
-            } else {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
                 filterQuestions();
-            }
+            }, 300);  // 300ms delay before filtering
         });
         
 
-        //scroll to top
+        // Close modals
+        document.querySelectorAll('.close-btn').forEach(btn => {
+            btn.onclick = function() {
+                this.closest('.modal').style.display = 'none';
+            }
+        });
+
+        // Close when clicking outside the modal
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+            }
+        };
+
+        // Scroll to top functionality
         window.onscroll = function() {
             const scrollToTopBtn = document.getElementById('scroll-to-top');
-            if (document.documentElement.scrollTop > 100) {
+            if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
                 scrollToTopBtn.style.display = 'block';
             } else {
                 scrollToTopBtn.style.display = 'none';
             }
         };
-        
+
         function scrollToTop() {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            document.body.scrollTop = 0; // For Safari
+            document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE and Opera
         }
-                
+
+        // ✅ View PDF in a new tab (No Download)
+        function viewContent(viewUrl) {
+            if (!viewUrl) {
+                alert("No file available.");
+                return;
+            }
+            window.open(viewUrl, '_blank');
+        }
+
+        // ✅ Download PDF using `download_url`
+        function downloadContent(downloadUrl) {
+            if (!downloadUrl) {
+                alert("No file available.");
+                return;
+            }
+            window.location.href = downloadUrl;
+        }
+
+        // Initialize Everything on Page Load
+        window.onload = fetchDocuments;
+
+        //lazy load
+        document.addEventListener("DOMContentLoaded", function () {
+            const lazyFrames = document.querySelectorAll('.lazy-load');
+            const observer = new IntersectionObserver(entries => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting && !entry.target.src) {
+                        entry.target.src = entry.target.getAttribute('data-src');
+                    }
+                });
+            });
+        
+            lazyFrames.forEach(frame => observer.observe(frame));
+        });
+        
         
     </script>
 </body>
 </html>
+

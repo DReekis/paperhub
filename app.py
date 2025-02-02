@@ -2,7 +2,11 @@ from flask import Flask, request, jsonify, render_template, send_file
 from pymongo import MongoClient
 import cloudinary
 import cloudinary.uploader
+import cloudinary.api
 from dotenv import load_dotenv
+from flask_caching import Cache
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 import io
 import os
 import ssl
@@ -12,6 +16,16 @@ import requests
 load_dotenv()
 
 app = Flask(__name__)
+
+app.config['CACHE_TYPE'] = 'simple' 
+cache = Cache(app)
+
+limiter = Limiter(
+    get_remote_address,
+    app=app,
+    default_limits=["100 per 10 minutes"]
+)
+
 
 
 # MongoDB Configuration
@@ -37,9 +51,15 @@ cloudinary.config(
 
 @app.route('/')
 def index():
-    return render_template('index.html')  
+    return render_template('index.html')
+
+@app.route('/static/<path:filename>')
+@cache.cached(timeout=86400)  # Cache assets for 1 day
+def cached_static(filename):
+    return send_from_directory('static', filename)
 
 @app.route('/upload', methods=['POST'])
+@limiter.limit("5 per minute")  
 def upload_file():
     try:
         data = request.form.to_dict()
@@ -64,22 +84,26 @@ def upload_file():
             return jsonify({"error": "Invalid file type. Allowed: .jpg, .jpeg, .pdf"}), 400
 
         folder = "notes" if data["type"].lower() == "notes" else "question_papers"
-        upload_result = cloudinary.uploader.upload(file, folder=folder)
-        data["file_url"] = upload_result["secure_url"]
+
+        # ✅ Upload PDFs as `raw` files so they are served correctly
+        resource_type = "raw" if file.content_type == "application/pdf" else "image"
+        upload_result = cloudinary.uploader.upload(file, folder=folder, resource_type=resource_type)
+
+        original_url = upload_result["secure_url"]
+        download_url = original_url.replace("upload/", "upload/fl_attachment/")
+
+        data["file_url"] = original_url   # For viewing PDFs
+        data["download_url"] = download_url  # For correct downloads
 
         collection = notes_collection if data["type"].lower() == "notes" else questions_collection
         collection.insert_one(data)
 
-        # Update metadata collection with new values
-        metadata_collection = db["metadata"]
-        metadata_collection.update_one({"type": "colleges"}, {"$addToSet": {"values": data["college"]}}, upsert=True)
-        metadata_collection.update_one({"type": "course_names"}, {"$addToSet": {"values": data["paper_name"]}}, upsert=True)
-        metadata_collection.update_one({"type": "course_codes"}, {"$addToSet": {"values": data["paper_code"]}}, upsert=True)
-
-        return jsonify({"message": "Upload successful!", "file_url": data["file_url"]}), 201
+        return jsonify({"message": "Upload successful!", "file_url": data["file_url"], "download_url": data["download_url"]}), 201
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
 
 @app.route('/get-metadata', methods=['GET'])
 def get_metadata():
@@ -103,12 +127,20 @@ def get_metadata():
 @app.route('/fetch-documents', methods=['GET'])
 def fetch_documents():
     try:
-        notes = list(notes_collection.find({}, {'_id': 0}))  # Get all notes
-        questions = list(questions_collection.find({}, {'_id': 0}))  # Get all questions
+        page = int(request.args.get('page', 1))
+        limit = min(int(request.args.get('limit', 20)), 50)  # Max limit = 50 per request
+        skip = (page - 1) * limit
+
+        notes = list(notes_collection.find({}, {'_id': 0}).skip(skip).limit(limit))
+        questions = list(questions_collection.find({}, {'_id': 0}).skip(skip).limit(limit))
 
         return jsonify({"notes": notes, "questions": questions}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+
+
     
 @app.route('/get-colleges', methods=['GET'])
 def get_colleges():
