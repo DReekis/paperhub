@@ -7,8 +7,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #4f46e5;
-            --primary-hover: #4338ca;
+            --primary: #023047;
+            --primary-hover: #caf0f8;
             --background: #f3f4f6;
             --card-background: #ffffff;
             --text: #1f2937;
@@ -84,6 +84,8 @@
 
         button:hover {
             background-color: var(--background);
+            color: var(--primary);
+
         }
 
         #upload-button {
@@ -94,6 +96,7 @@
 
         #upload-button:hover {
             background-color: var(--primary-hover);
+            color: #023047;
         }
 
         #questions-container {
@@ -108,6 +111,7 @@
             padding: 1rem;
             box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
             transition: all 0.2s ease;
+            position: relative;
         }
 
         .question-card:hover {
@@ -130,12 +134,21 @@
         .question-card .content-type {
             display: inline-block;
             padding: 0.25rem 0.5rem;
-            background-color: #e0f2f1;
-            color: #00796b;
+            background-color: #ade8f4;
+            color: var(--primary);
             border-radius: 0.25rem;
             font-size: 0.75rem;
             font-weight: 600;
             margin-bottom: 0.5rem;
+        }
+
+        .question-card .year {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-secondary);
         }
 
         .question-card .buttons {
@@ -152,7 +165,7 @@
 
         #view-button:hover{
             background-color: var(--primary-hover);
-            color: #ffffff;
+            color: #023047;
         }
 
         #download-button{
@@ -206,7 +219,6 @@
             text-decoration: none;
         }
 
-
         #filter-search {
             width: 100%;
             padding: 0.75rem 1rem;
@@ -229,6 +241,17 @@
 
         #filter-list li:hover {
             background-color: var(--background);
+        }
+
+        #reset-filters {
+            background-color: #FC4A56;
+            color: #F5F3F3;
+
+        }
+
+        #reset-filters:hover{
+            background-color: #ef233c;
+
         }
 
         #upload-form {
@@ -286,6 +309,53 @@
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
 
+        .content-type-toggle {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 1rem;
+            background-color: var(--card-background);
+            border-radius: 0.5rem;
+            padding: 0.5rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        }
+
+        .content-type-toggle button {
+            background-color: transparent;
+            border: none;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .content-type-toggle button.active {
+            background-color: var(--primary);
+            color: white;
+            border-radius: 0.25rem;
+        }
+
+        #filters-modal .modal-content {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        #file-preview {
+            margin-top: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        #change-file {
+            margin-top: 0.5rem;
+            font-size: 0.875rem;
+            color: var(--primary);
+            cursor: pointer;
+        }
+
+        #change-file:hover {
+            text-decoration: underline;
+        }
+
         @media (min-width: 640px) {
             .search-filter-container {
                 flex-wrap: nowrap;
@@ -325,6 +395,11 @@
                 <button id="filters-button">Filters</button>
                 <button id="upload-button" class="upload-btn">Upload</button>
             </div>
+        </div>
+        <div class="content-type-toggle">
+            <button class="active" data-type="all">ALL</button>
+            <button data-type="Question Paper">Question Paper</button>
+            <button data-type="notes">Notes</button>
         </div>
         <div id="questions-container"></div>
     </main>
@@ -388,6 +463,8 @@
                 <div class="form-group">
                     <label for="file-upload">Upload File</label>
                     <input type="file" id="file-upload" name="file-upload" accept=".pdf" required>
+                    <div id="file-preview"></div>
+                    <div id="change-file" style="display: none;">Change file</div>
                 </div>
                 <button type="submit">Upload Document</button>
             </form>
@@ -425,13 +502,8 @@
         <div class="modal-content">
             <span class="close-btn" onclick="closePdfModal()">&times;</span>
             <iframe class="lazy-load" data-src="" width="100%" height="400px"></iframe>
-
         </div>
     </div>
-
-
-
-    
 
     <div id="success-message">
         <h2>Document Uploaded Successfully!</h2>
@@ -464,12 +536,13 @@
                 card.className = 'question-card';
                 card.innerHTML = `
                     <div class="content-type">${q.type}</div>
+                    <div class="year">${q.paper_year}</div>
                     <h3>${q.paper_name}</h3>
                     <p><strong>Code:</strong> ${q.paper_code}</p>
                     <p><strong>College:</strong> ${q.college}</p>
-                    <p><strong>Year:</strong> ${q.paper_year}, <strong>Semester:</strong> ${q.semester}</p>
+                    <p><strong>Semester:</strong> ${q.semester}</p>
                     <div class="buttons">
-                        <button onclick="viewContent('${q.file_url}')" id = "view-button">View</button>
+                        <button onclick="viewContent('${q.file_url}')" id="view-button">View</button>
                         <button onclick="downloadContent('${q.file_url}')" id="download-button">Download</button>
                     </div>
                 `;
@@ -483,8 +556,11 @@
             const collegeFilter = document.getElementById('college-filter').value;
             const subjectFilter = document.getElementById('subject-filter').value;
             const codeFilter = document.getElementById('code-filter').value;
+            const contentType = document.querySelector('.content-type-toggle button.active').dataset.type.toLowerCase();
 
             const filtered = questions.filter(q =>
+            
+                (contentType === 'all' || q.type.toLowerCase() === contentType) &&
                 (!collegeFilter || q.college === collegeFilter) &&
                 (!subjectFilter || q.paper_name === subjectFilter) &&
                 (!codeFilter || q.paper_code === codeFilter) &&
@@ -605,6 +681,30 @@
             }, 300);  // 300ms delay before filtering
         });
         
+        // Content Type Toggle
+        document.querySelectorAll('.content-type-toggle button').forEach(button => {
+            button.addEventListener('click', () => {
+                document.querySelectorAll('.content-type-toggle button').forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                filterQuestions();
+            });
+        });
+
+        // File Upload Preview
+        document.getElementById('file-upload').addEventListener('change', function(e) {
+            const fileName = e.target.files[0]?.name;
+            if (fileName) {
+                document.getElementById('file-preview').textContent = `Selected file: ${fileName}`;
+                document.getElementById('change-file').style.display = 'block';
+            } else {
+                document.getElementById('file-preview').textContent = '';
+                document.getElementById('change-file').style.display = 'none';
+            }
+        });
+
+        document.getElementById('change-file').addEventListener('click', function() {
+            document.getElementById('file-upload').click();
+        });
 
         // Close modals
         document.querySelectorAll('.close-btn').forEach(btn => {
@@ -635,7 +735,7 @@
             document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE and Opera
         }
 
-        // ✅ View PDF in a new tab (No Download)
+        // View PDF in a new tab (No Download)
         function viewContent(viewUrl) {
             if (!viewUrl) {
                 alert("No file available.");
@@ -644,7 +744,7 @@
             window.open(viewUrl, '_blank');
         }
 
-        // ✅ Download PDF using `download_url`
+        // Download PDF using `download_url`
         function downloadContent(downloadUrl) {
             if (!downloadUrl) {
                 alert("No file available.");
@@ -656,7 +756,7 @@
         // Initialize Everything on Page Load
         window.onload = fetchDocuments;
 
-        //lazy load
+        // Lazy load
         document.addEventListener("DOMContentLoaded", function () {
             const lazyFrames = document.querySelectorAll('.lazy-load');
             const observer = new IntersectionObserver(entries => {
@@ -669,9 +769,6 @@
         
             lazyFrames.forEach(frame => observer.observe(frame));
         });
-        
-        
     </script>
 </body>
 </html>
-

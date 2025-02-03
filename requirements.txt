@@ -1,0 +1,6 @@
+Flask
+pymongo
+cloudinary
+python-dotenv
+requests
+Flask-Limiter
