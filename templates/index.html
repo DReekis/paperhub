@@ -419,12 +419,20 @@
             <h2>Upload New Document</h2>
             <form id="upload-form">
                 <div class="form-group">
+                    <label for="document-type">Document Type</label>
+                    <select id="document-type" name="type" required>
+                        <option value="">Select Type</option>
+                        <option value="Question Paper">Question Paper</option>
+                        <option value="Notes">Notes</option>
+                    </select>
+                </div>
+                <div class="form-group">
                     <label for="college">College Name</label>
                     <input type="text" id="college" name="college" required>
                 </div>
                 <div class="form-group">
                     <label for="semester">Semester</label>
-                    <select id="semester" name="semester" required>
+                    <select id="semester" name="semester">
                         <option value="">Select Semester</option>
                         <option value="1st">1st</option>
                         <option value="2nd">2nd</option>
@@ -436,29 +444,25 @@
                         <option value="8th">8th</option>
                     </select>
                 </div>
-                <div class="form-group">
+                <div class="form-group" id="year-group">
                     <label for="year">Year of Exam</label>
-                    <input type="number" id="year" name="year" required>
+                    <input type="number" id="year" name="year">
                 </div>
                 <div class="form-group">
                     <label for="course-name">Course Name</label>
                     <input type="text" id="course-name" name="course_name" required>
                 </div>
-                <div class="form-group">
+                <div class="form-group" id="course-code-group">
                     <label for="course-code">Course Code</label>
-                    <input type="text" id="course-code" name="course_code" required>
+                    <input type="text" id="course-code" name="course_code">
                 </div>
-                <div class="form-group">
-                    <label for="document-type">Document Type</label>
-                    <select id="document-type" name="type" required>
-                        <option value="">Select Type</option>
-                        <option value="Question Paper">Question Paper</option>
-                        <option value="Notes">Notes</option>
-                    </select>
-                </div>
-                <div class="form-group">
+                <div class="form-group" id="trade-group">
                     <label for="trade">Trade</label>
-                    <input type="text" id="trade" name="trade" required>
+                    <input type="text" id="trade" name="trade">
+                </div>
+                <div class="form-group">
+                    <label for="tags-attachment">Tags Attachment</label>
+                    <input type="text" id="tags-attachment" name="tags_attachment">
                 </div>
                 <div class="form-group">
                     <label for="file-upload">Upload File</label>
@@ -768,6 +772,32 @@
             });
         
             lazyFrames.forEach(frame => observer.observe(frame));
+        });
+
+        // Add this to your existing JavaScript
+        document.getElementById('document-type').addEventListener('change', function() {
+            const yearGroup = document.getElementById('year-group');
+            const semesterGroup = document.getElementById('semester');
+            const tradeGroup = document.getElementById('trade-group');
+            const courseCodeGroup = document.getElementById('course-code-group');
+
+            if (this.value === 'Notes') {
+                yearGroup.style.display = 'none';
+                yearGroup.querySelector('input').required = false;
+                semesterGroup.required = false;
+                tradeGroup.style.display = 'none';
+                tradeGroup.querySelector('input').required = false;
+                courseCodeGroup.style.display = 'none';
+                courseCodeGroup.querySelector('input').required = false;
+            } else {
+                yearGroup.style.display = 'block';
+                yearGroup.querySelector('input').required = true;
+                semesterGroup.required = true;
+                tradeGroup.style.display = 'block';
+                tradeGroup.querySelector('input').required = true;
+                courseCodeGroup.style.display = 'block';
+                courseCodeGroup.querySelector('input').required = true;
+            }
         });
     </script>
 </body>
