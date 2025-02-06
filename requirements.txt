@@ -1,6 +1,10 @@
-Flask
-pymongo
-cloudinary
-python-dotenv
-requests
-Flask-Limiter
+Flask==2.0.2
+Werkzeug==2.0.2
+Flask-PyMongo==2.3.0
+pymongo[srv]==4.6.1
+dnspython==2.4.2
+cloudinary==1.36.0
+python-dotenv==1.0.1
+flask-caching==1.10.1
+flask-limiter==3.5.0
+requests==2.32.3
