@@ -11,6 +11,10 @@ import io
 import os
 import ssl
 import requests
+from flask_cors import CORS
+
+CORS(app)
+
 
 
 load_dotenv()
