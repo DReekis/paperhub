@@ -37,10 +37,12 @@ limiter = Limiter(
 MONGO_URI = os.getenv('MONGO_URI')
 
 client = MongoClient(
-        MONGO_URI, 
-        tls=True, 
-        tlsCAFile=ssl.get_default_verify_paths().cafile
-    )
+    MONGO_URI,
+    tls=True,
+    tlsAllowInvalidCertificates=True,
+    tlsVersion=ssl.PROTOCOL_TLSv1_2  
+)
+
 db = client["paperhub"]
 notes_collection = db['notes']
 questions_collection = db['questions']
