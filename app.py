@@ -13,13 +13,14 @@ import ssl
 import requests
 from flask_cors import CORS
 
-CORS(app)
+
 
 
 
 load_dotenv()
 
 app = Flask(__name__)
+CORS(app)
 
 app.config['CACHE_TYPE'] = 'simple' 
 cache = Cache(app)
