@@ -15,8 +15,6 @@ from flask_cors import CORS
 
 
 
-
-
 load_dotenv()
 
 app = Flask(__name__)
@@ -40,7 +38,7 @@ client = MongoClient(
     MONGO_URI,
     tls=True,
     tlsAllowInvalidCertificates=True,
-    tlsVersion=ssl.PROTOCOL_TLSv1_2  
+    ssl_cert_reqs=ssl.CERT_NONE  
 )
 
 db = client["paperhub"]
