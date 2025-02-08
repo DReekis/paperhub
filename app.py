@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify, render_template, send_file
-from pymongo import MongoClient
+from pymongo.mongo_client import MongoClient
+from pymongo.server_api import ServerApi
 import cloudinary
 import cloudinary.uploader
 import cloudinary.api
@@ -33,14 +34,7 @@ limiter = Limiter(
 
 # MongoDB Configuration
 MONGO_URI = os.getenv('MONGO_URI')
-
-client = MongoClient(
-    MONGO_URI,
-    tls=True,
-    tlsAllowInvalidCertificates=True,
-    ssl_cert_reqs=ssl.CERT_NONE  
-)
-
+client = MongoClient(MONGO_URI, server_api=ServerApi('1'))
 db = client["paperhub"]
 notes_collection = db['notes']
 questions_collection = db['questions']
