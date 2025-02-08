@@ -39,6 +39,12 @@ db = client["paperhub"]
 notes_collection = db['notes']
 questions_collection = db['questions']
 
+try:
+    client.admin.command('ping')
+    print("Pinged your deployment. You successfully connected to MongoDB!")
+except Exception as e:
+    print("MongoDB connection error:", e)
+
 
 
 # Cloudinary Configuration
