@@ -464,6 +464,83 @@
             background-color: #ef233c;
         }
 
+        /*pdf modal*/
+        .pdf-modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0,0,0,0.9);
+        }
+
+        .pdf-modal-content {
+            background-color: #023047;
+            margin: 0;
+            padding: 10px;
+            max-width: 100%;
+            height: 100%;
+            display: grid;
+            flex-direction: column;
+        }
+
+        #pdf-viewer {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow: auto;
+        }
+
+        #pdf-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+            background-color: #f0f0f0;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        #pdf-controls button {
+            margin: 0 5px;
+            padding: 5px 10px;
+            background-color: #023047;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        #pdf-controls button:hover {
+            background-color: #caf0f8;
+            color: #023047;
+        }
+
+        #pdf-render {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .close-btn {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            position: fixed;
+        }
+
+    .close-btn:hover,
+    .close-btn:focus {
+        color: #000;
+        text-decoration: none;
+        cursor: pointer;
+    }
 
         @media (min-width: 640px) {
             .search-filter-container {
@@ -487,6 +564,14 @@
             h1 {
                 font-size: 2rem;
             }
+
+            #pdf-controls {
+            flex-wrap: wrap;
+        }
+
+        #pdf-controls button {
+            margin: 5px;
+        }
         }
     </style>
 </head>
@@ -558,12 +643,12 @@
                     <input type="number" id="year" name="year" required min="1900" max="2099">
                 </div>
                 <div class="form-group question-paper-field">
-                    <label for="course-name">Course Name *</label>
+                    <label for="course-name">Subject Name *</label>
                     <input type="text" id="course-name" name="course_name" placeholder="Here you have to put the subject name, title etc." required>
                 </div>
                 <div class="form-group question-paper-field">
-                    <label for="course-code">Course Code *</label>
-                    <input type="text" id="course-code" name="course_code" placeholder="just put the course code if any..." required>
+                    <label for="course-code">Subject Code </label>
+                    <input type="text" id="course-code" name="course_code" placeholder="just put the course code if any..." >
                 </div>
                 <div class="form-group question-paper-field">
                     <label for="trade">Trade *</label>
@@ -625,19 +710,40 @@
         </div>
     </div>
 
-    <div id="pdf-modal" class="modal">
-        <div class="modal-content">
+    <div id="pdf-modal" class="modal pdf-modal">
+        <div class="modal-content pdf-modal-content">
             <span class="close-btn" onclick="closePdfModal()">&times;</span>
-            <iframe class="lazy-load" data-src="" width="100%" height="400px"></iframe>
+            <div id="pdf-viewer">
+                <div id="pdf-controls">
+                    <button id="prev-page">Previous</button>
+                    <span id="page-num"></span> / <span id="page-count"></span>
+                    <button id="next-page">Next</button>
+                    <button id="zoom-in">Zoom In</button>
+                    <button id="zoom-out">Zoom Out</button>
+                </div>
+                <canvas id="pdf-render"></canvas>
+            </div>
         </div>
     </div>
+
+
 
     <div id="success-message">
         <h2>Document Uploaded Successfully!</h2>
     </div>
 
+    <div id="pdf-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closePdfModal()">&times;</span>
+            <iframe width="100%" height="500px"></iframe>
+        </div>
+    </div>
+    
+
+
     <button id="scroll-to-top" onclick="scrollToTop()">↑</button>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.9.359/pdf.min.js"></script>
     <script>
         let questions = [];
         let colleges = [];
@@ -694,6 +800,7 @@
         container.appendChild(card);
     });
 }
+
 
 
         // Search Function
@@ -882,13 +989,40 @@
         }
 
         // View PDF in a new tab (No Download)
-        function viewContent(viewUrl) {
-            if (!viewUrl) {
-                alert("No file available.");
-                return;
-            }
-            window.open(viewUrl, '_blank');
+        function viewContent(fileUrl) {
+        if (!fileUrl) {
+            alert("No file available.");
+            return;
         }
+
+        const loadingTask = pdfjsLib.getDocument(fileUrl);
+        loadingTask.promise.then(function(pdf) {
+            pdfDoc = pdf;
+            document.getElementById('page-count').textContent = pdf.numPages;
+
+            renderPage(pageNum);
+
+            document.getElementById('prev-page').addEventListener('click', onPrevPage);
+            document.getElementById('next-page').addEventListener('click', onNextPage);
+            document.getElementById('zoom-in').addEventListener('click', zoomIn);
+            document.getElementById('zoom-out').addEventListener('click', zoomOut);
+
+            document.getElementById('pdf-modal').style.display = 'block';
+        });
+    }
+
+
+
+        // Close the PDF modal
+        function closePdfModal() {
+        document.getElementById('pdf-modal').style.display = 'none';
+        // Reset PDF viewer state
+        pdfDoc = null;
+        pageNum = 1;
+        scale = 1.5;
+        document.getElementById('pdf-render').getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+    }
+
 
         // Download PDF using `download_url`
         function downloadContent(downloadUrl) {
@@ -1007,6 +1141,76 @@ document.querySelector("#upload-form .reset-btn").addEventListener("click", (e) 
     field.style.display = "none"
   })
 })
+
+//view pdf function
+
+let pdfDoc = null,
+        pageNum = 1,
+        pageRendering = false,
+        pageNumPending = null,
+        scale = 1.5;
+
+    function renderPage(num) {
+        pageRendering = true;
+        pdfDoc.getPage(num).then(function(page) {
+            const viewport = page.getViewport({scale: scale});
+            const canvas = document.getElementById('pdf-render');
+            const ctx = canvas.getContext('2d');
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
+
+            const renderContext = {
+                canvasContext: ctx,
+                viewport: viewport
+            };
+            const renderTask = page.render(renderContext);
+
+            renderTask.promise.then(function() {
+                pageRendering = false;
+                if (pageNumPending !== null) {
+                    renderPage(pageNumPending);
+                    pageNumPending = null;
+                }
+            });
+        });
+
+        document.getElementById('page-num').textContent = num;
+    }
+
+    function queueRenderPage(num) {
+        if (pageRendering) {
+            pageNumPending = num;
+        } else {
+            renderPage(num);
+        }
+    }
+
+    function onPrevPage() {
+        if (pageNum <= 1) {
+            return;
+        }
+        pageNum--;
+        queueRenderPage(pageNum);
+    }
+
+    function onNextPage() {
+        if (pageNum >= pdfDoc.numPages) {
+            return;
+        }
+        pageNum++;
+        queueRenderPage(pageNum);
+    }
+
+    function zoomIn() {
+        scale += 0.1;
+        renderPage(pageNum);
+    }
+
+    function zoomOut() {
+        if (scale <= 0.5) return;
+        scale -= 0.1;
+        renderPage(pageNum);
+    }
 
 
     </script>

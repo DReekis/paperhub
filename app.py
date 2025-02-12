@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template, send_file
+from flask import Flask, request, jsonify, render_template, send_file, Response
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 import cloudinary
@@ -34,16 +34,19 @@ limiter = Limiter(
 
 # MongoDB Configuration
 MONGO_URI = os.getenv('MONGO_URI')
-client = MongoClient(MONGO_URI, server_api=ServerApi('1'))
+client = MongoClient(
+    MONGO_URI,
+    server_api=ServerApi('1'),
+    tls=True,
+    tlsAllowInvalidCertificates=True,  # Skip certificate validation
+    tlsCAFile=ssl.get_default_verify_paths().cafile  # Explicitly set CA file path
+)
+
 db = client["paperhub"]
 notes_collection = db['notes']
 questions_collection = db['questions']
 
-try:
-    client.admin.command('ping')
-    print("Pinged your deployment. You successfully connected to MongoDB!")
-except Exception as e:
-    print("MongoDB connection error:", e)
+
 
 
 
@@ -181,6 +184,32 @@ def download_file(file_url):
     # Fetch the file from Cloudinary for download
     response = cloudinary.utils.download(file_url)
     return send_file(io.BytesIO(response.content), download_name=file_url.split('/')[-1])
+
+@app.route('/view')
+def view_file():
+    file_url = request.args.get('file_url')
+    
+    if not file_url:
+        return "Missing file URL", 400
+
+    try:
+        # Fetch the PDF with headers to prevent Cloudinary blocking it
+        headers = {"User-Agent": "Mozilla/5.0"}
+        response = requests.get(file_url, stream=True, headers=headers, allow_redirects=True)
+
+        if response.status_code != 200:
+            return f"Error fetching file: {response.status_code}", 500
+
+        # Stream the PDF response
+        return Response(
+            response.iter_content(chunk_size=8192),
+            content_type="application/pdf",
+            headers={"Content-Disposition": "inline; filename=document.pdf"}
+        )
+
+    except Exception as e:
+        return f"Internal Server Error: {str(e)}", 500
+
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5000, debug=True)
