@@ -861,9 +861,9 @@
             // Card for Question Papers
             card.innerHTML = `
                 <div class="content-type">Question Paper</div>
-                <div class="year">${q.paper_year}</div>
-                <h3>${q.paper_name}</h3>
-                <p><strong>Code:</strong> ${q.paper_code}</p>
+                <div class="year">${q.year}</div>
+                <h3>${q.course_name}</h3>
+                <p><strong>Code:</strong> ${q.course_code}</p>
                 <p><strong>College:</strong> ${q.college}</p>
                 <p><strong>Semester/Year:</strong> ${q.semester}</p>
                 <div class="buttons">
@@ -891,7 +891,7 @@
             
                 (contentType === 'all' || q.type.toLowerCase() === contentType) &&
                 (!collegeFilter || q.college === collegeFilter) &&
-                (!subjectFilter || q.paper_name === subjectFilter) &&
+                (!subjectFilter || q.course_name === subjectFilter) &&
                 (!codeFilter || q.paper_code === codeFilter) &&
                 (searchTerm === '' ||
                  q.paper_name?.toLowerCase().includes(searchTerm) ||
@@ -909,11 +909,10 @@
                 const data = await response.json();
 
                 if (response.ok) {
-                    questions = [...data.notes, ...data.questions];
+                    notes = data.notes;
+                    questions = data.questions;
                     updateFilters();
-                    renderQuestions(questions.reverse());
-                } else {
-                    console.error('Error fetching documents:', data.error);
+                    renderQuestions([...notes, ...questions].reverse());
                 }
             } catch (error) {
                 console.error('Fetch error:', error);
@@ -922,28 +921,27 @@
 
         // Update Filters Dynamically
         function updateFilters() {
-            colleges = Array.from(new Set(questions.map(q => q.college))).filter(Boolean);
-            subjects = Array.from(new Set(questions.map(q => q.paper_name))).filter(Boolean);
-            courseCodes = Array.from(new Set(questions.map(q => q.paper_code))).filter(Boolean);
+            // Get unique values from combined results
+            const allColleges = [...new Set([...questions.map(q => q.college)])].filter(Boolean);
+            const allSubjects = [
+                ...new Set([
+                    ...questions.map(q => q.course_name),
+                    ...notes.map(n => n.title)
+                ])
+            ].filter(Boolean);
+            const allCodes = [...new Set(questions.map(q => q.course_code))].filter(Boolean);
 
-            const collegeSelect = document.getElementById('college-filter');
-            const subjectSelect = document.getElementById('subject-filter');
-            const codeSelect = document.getElementById('code-filter');
+            // Update dropdowns
+            populateDropdown('college-filter', allColleges);
+            populateDropdown('subject-filter', allSubjects);
+            populateDropdown('code-filter', allCodes);
+        }
 
-            [collegeSelect, subjectSelect, codeSelect].forEach(select => {
-                select.innerHTML = `<option value="">All ${select.id.split('-')[0]}s</option>`;
-            });
-
-            colleges.forEach(college => {
-                collegeSelect.innerHTML += `<option value="${college}">${college}</option>`;
-            });
-
-            subjects.forEach(subject => {
-                subjectSelect.innerHTML += `<option value="${subject}">${subject}</option>`;
-            });
-
-            courseCodes.forEach(code => {
-                codeSelect.innerHTML += `<option value="${code}">${code}</option>`;
+        function populateDropdown(elementId, values) {
+            const select = document.getElementById(elementId);
+            select.innerHTML = `<option value="">All ${elementId.split('-')[0]}s</option>`;
+            values.forEach(value => {
+                select.innerHTML += `<option value="${value}">${value}</option>`;
             });
         }
 
@@ -1003,12 +1001,60 @@
         });
 
         let debounceTimer;
+
+        // Modified filterQuestions function
+        async function filterQuestions() {
+            const searchTerm = document.getElementById('search-input').value.trim();
+            const collegeFilter = document.getElementById('college-filter').value;
+            const subjectFilter = document.getElementById('subject-filter').value;
+            const codeFilter = document.getElementById('code-filter').value;
+            const contentType = document.querySelector('.content-type-toggle button.active').dataset.type.toLowerCase();
+
+            try {
+                const params = new URLSearchParams({
+                    search: searchTerm,
+                    college: collegeFilter,
+                    subject: subjectFilter,
+                    code: codeFilter
+                });
+
+                const response = await fetch(`/fetch-documents?${params}`);
+                const data = await response.json();
+                
+                let filtered = [...data.notes, ...data.questions];
+                
+                // Client-side content type filter
+                if (contentType !== 'all') {
+                    filtered = filtered.filter(q => q.type.toLowerCase() === contentType);
+                }
+                
+                renderQuestions(filtered);
+            } catch (error) {
+                console.error('Fetch Error:', error);
+            }
+        }
+
+// Update event listeners
+document.getElementById('apply-filters').addEventListener('click', () => {
+    filterQuestions();
+    document.getElementById('filters-modal').style.display = 'none';
+});
+
+document.getElementById('reset-filters').addEventListener('click', () => {
+    document.getElementById('college-filter').value = '';
+    document.getElementById('subject-filter').value = '';
+    document.getElementById('code-filter').value = '';
+    filterQuestions();
+    document.getElementById('filters-modal').style.display = 'none';
+});
+
         document.getElementById('search-input').addEventListener('input', function () {
             clearTimeout(debounceTimer);
             debounceTimer = setTimeout(() => {
                 filterQuestions();
-            }, 300);  // 300ms delay before filtering
+            }, 300);  // 300ms debounce to prevent excessive API calls
         });
+
         
         // Content Type Toggle
         document.querySelectorAll('.content-type-toggle button').forEach(button => {

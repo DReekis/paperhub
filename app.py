@@ -10,7 +10,6 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 import io
 import os
-import re
 import ssl
 import requests
 from flask_cors import CORS
@@ -136,28 +135,44 @@ def get_metadata():
 @app.route('/fetch-documents', methods=['GET'])
 def fetch_documents():
     try:
-        page = int(request.args.get('page', 1))
-        limit = min(int(request.args.get('limit', 20)), 50)  # Max limit = 50 per request
-        skip = (page - 1) * limit
+        search_term = request.args.get('search', '').strip().lower()
+        college_filter = request.args.get('college', '').strip()
+        subject_filter = request.args.get('subject', '').strip()
+        code_filter = request.args.get('code', '').strip()
 
-        notes = list(notes_collection.find({}, {'_id': 0}))
-        questions = list(questions_collection.find({}, {'_id': 0}))
+        # Base queries
+        notes_query = {}
+        questions_query = {}
 
-        # Ensure all documents have consistent fields
-        for note in notes:
-            note.setdefault("type", "notes")
-            note.setdefault("title", "Untitled Notes")
-            note.setdefault("author", "Unknown")
-            note.setdefault("college", "Unknown College")
-            note.setdefault("tags", [])
+        # Search logic
+        if search_term:
+            notes_query["$or"] = [
+                {"title": {"$regex": search_term, "$options": "i"}},
+                {"college": {"$regex": search_term, "$options": "i"}},
+                {"tags": {"$regex": search_term, "$options": "i"}}
+            ]
+            questions_query["$or"] = [
+                {"course_name": {"$regex": search_term, "$options": "i"}},
+                {"course_code": {"$regex": search_term, "$options": "i"}},
+                {"college": {"$regex": search_term, "$options": "i"}},
+                {"trade": {"$regex": search_term, "$options": "i"}}
+            ]
 
-        for question in questions:
-            question.setdefault("type", "question_paper")
-            question.setdefault("paper_name", "Untitled Question Paper")
-            question.setdefault("paper_code", "N/A")
-            question.setdefault("college", "Unknown College")
-            question.setdefault("semester", "N/A")
-            question.setdefault("paper_year", "N/A")
+        # Filter logic
+        if college_filter:
+            notes_query["college"] = {"$regex": f"^{college_filter}$", "$options": "i"}
+            questions_query["college"] = {"$regex": f"^{college_filter}$", "$options": "i"}
+
+        if subject_filter:
+            notes_query["title"] = {"$regex": f"^{subject_filter}$", "$options": "i"}
+            questions_query["course_name"] = {"$regex": f"^{subject_filter}$", "$options": "i"}
+
+        if code_filter:
+            questions_query["course_code"] = {"$regex": f"^{code_filter}$", "$options": "i"}
+
+        # Fetch documents
+        notes = list(notes_collection.find(notes_query, {'_id': 0}))
+        questions = list(questions_collection.find(questions_query, {'_id': 0}))
 
         return jsonify({"notes": notes, "questions": questions}), 200
 
