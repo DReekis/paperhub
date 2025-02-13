@@ -682,7 +682,7 @@
                     <input type="text" id="college" name="college" placeholder="Don't use short form like (HIT,IIT,NIT) " required>
                 </div>
                 <div class="form-group question-paper-field">
-                    <label for="semester">Semester *</label>
+                    <label for="semester">Semester/Year *</label>
                     <select id="semester" name="semester" required>
                         <option value="">Select Semester</option>
                         <option value="1st">1st</option>
@@ -697,7 +697,8 @@
                 </div>
                 <div class="form-group question-paper-field">
                     <label for="year">Year of Exam *</label>
-                    <input type="number" id="year" name="year" required min="1900" max="2099">
+                    <input type="text" id="year" name="year" pattern="^\d{4}(-\d{4})?$" placeholder="Like this or that, 2020 or 2020-2025" required>
+
                 </div>
                 <div class="form-group question-paper-field">
                     <label for="course-name">Subject Name *</label>
@@ -708,9 +709,9 @@
                     <input type="text" id="course-code" name="course_code" placeholder="just put the course code if any..." >
                 </div>
                 <div class="form-group question-paper-field">
-                    <label for="trade">Trade *</label>
+                    <label for="trade">Trade/Course name *</label>
                     <input type="text" id="trade" name="trade" placeholder="Like DME, CSE..." required>
-                </div>
+                </div>  
                 <div class="form-group notes-field" style="display: none;">
                     <label for="title">Title/Name *</label>
                     <input type="text" id="title" name="title" required>
@@ -864,7 +865,7 @@
                 <h3>${q.paper_name}</h3>
                 <p><strong>Code:</strong> ${q.paper_code}</p>
                 <p><strong>College:</strong> ${q.college}</p>
-                <p><strong>Semester:</strong> ${q.semester}</p>
+                <p><strong>Semester/Year:</strong> ${q.semester}</p>
                 <div class="buttons">
                     <button onclick="viewContent('${q.file_url}')" id="view-button">View</button>
                     <button onclick="downloadContent('${q.download_url}')" id="download-button">Download</button>

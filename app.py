@@ -10,6 +10,7 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 import io
 import os
+import re
 import ssl
 import requests
 from flask_cors import CORS
@@ -90,7 +91,7 @@ def upload_file():
             file,
             folder=folder,
             resource_type="raw",
-            public_id=file_name.rsplit('.', 1)[0],
+            public_id = file_name.rsplit('.', 1)[0].strip(),
             overwrite=True
         )
 
