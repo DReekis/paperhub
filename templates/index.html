@@ -1093,14 +1093,36 @@
         });
     }
 
-    function closePdfModal() {
-        document.getElementById('pdf-modal').style.display = 'none';
-        // Reset PDF viewer state
-        pdfDoc = null;
-        pageNum = 1;
-        scale = 1.5;
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-    }
+    document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll('.close-btn').forEach(btn => {
+        btn.addEventListener('click', function () {
+            let modal = this.closest('.modal') || this.closest('.pdf-modal');
+            if (modal) {
+                modal.style.display = 'none';
+            } else {
+                console.error("Error: Could not find the modal for this close button.");
+            }
+        });
+    });
+
+     // Reset PDF viewer state
+     pdfDoc = null;
+    pageNum = 1;
+    scale = 1.5;
+
+    // Clear the canvas
+    const canvas = document.getElementById('pdf-render');
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Remove event listeners to prevent duplicates
+    document.getElementById('prev-page').removeEventListener('click', onPrevPage);
+    document.getElementById('next-page').removeEventListener('click', onNextPage);
+    document.getElementById('zoom-in').removeEventListener('click', zoomIn);
+    document.getElementById('zoom-out').removeEventListener('click', zoomOut);
+
+});
+
 
 
         // Download PDF using `download_url`
