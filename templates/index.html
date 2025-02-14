@@ -114,13 +114,13 @@
             border-radius: 0.5rem;
             padding: 1rem;
             box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-            transition: all 0.2s ease;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
         }
 
         .question-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
         }
 
         .question-card h3 {
@@ -592,22 +592,103 @@
         transition: width 0.3s ease;
     }
 
+    /* Upload Progress Styles */
+    .progress-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+    }
+
+    .progress-stats {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+    }
+
+    .cancel-btn {
+        background: #fc4a56;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        cursor: pointer;
+        transition: background 0.2s ease;
+    }
+
+    .cancel-btn:hover {
+        background: #ef233c;
+    }
+
+    .progress-details {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 0.5rem;
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+    }
+
+    /* File Size Error */
+    .file-size-error {
+        color: #ef233c;
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+        display: none;
+    }
+    .upload-progress {
+        width: 100%;
+        margin: 1rem 0;
+    }
+
+    .progress-bar {
+        height: 12px;
+        background-color: #e9ecef;
+        border-radius: 6px;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .progress-fill {
+        height: 100%;
+        width: 0%;
+        background: linear-gradient(90deg, #023047 0%, #219ebc 100%);
+        border-radius: 6px;
+        transition: width 0.3s ease, opacity 0.3s ease;
+    }
+
+    .progress-text {
+        text-align: center;
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+        margin-top: 0.5rem;
+        font-weight: 500;
+    }
+
+    .submit-btn:disabled {
+        background-color: #a0a0a0;
+        cursor: not-allowed;
+        opacity: 0.8;
+    }
+
     @keyframes fadeIn {
         from { opacity: 0; }
         to { opacity: 1; }
     }
 
         @media (min-width: 640px) {
+
             .search-filter-container {
                 flex-wrap: nowrap;
             }
 
             #search-input {
-                max-width: 90%;
+                width: 100%;
+                margin-bottom: 0.5rem;
             }
 
             .filter-buttons {
-                flex: 0 0 auto;
+                flex: 0 0 auto;  
             }
 
             #upload-button, #filters-button {
@@ -734,6 +815,22 @@
                     <button id="reset-btn" type="reset" class="reset-btn">Reset Fields</button>
                     <button type="submit" class="submit-btn">Upload Document</button>
                     
+                </div>
+                <div class="upload-progress" style="display: none;">
+                    <div class="progress-header">
+                        <div class="progress-stats">
+                            <span class="progress-percent">0%</span>
+                            <span class="progress-time">0s remaining</span>
+                        </div>
+                        <button class="cancel-btn" onclick="cancelUpload()">✕</button>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill"></div>
+                    </div>
+                    <div class="progress-details">
+                        <span class="file-size">0 MB / 0 MB</span>
+                        <span class="upload-speed">0 MB/s</span>
+                    </div>
                 </div>
             </form>
         </div>
@@ -946,27 +1043,124 @@
         }
 
         // Upload Form Submission
-        document.getElementById('upload-form').addEventListener('submit', async (e) => {
+        let uploadXHR = null;
+        let startTime = null;
+        let lastLoaded = 0;
+
+        function formatTime(seconds) {
+            if (seconds <= 0 || !isFinite(seconds)) return 'Calculating...';
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = Math.floor(seconds % 60);
+            return `${minutes}m ${remainingSeconds.toString().padStart(2, '0')}s remaining`;
+        }
+
+        function updateProgress(e) {
+            if (!e.lengthComputable) return;
+            
+            const now = Date.now();
+            const elapsed = (now - startTime) / 1000; // Total time since start
+            const loaded = e.loaded;
+            const total = e.total;
+            
+            // Calculate average speed based on total time
+            const speed = loaded / elapsed; // bytes/sec
+            const remainingTime = (total - loaded) / speed;
+            
+            const percent = Math.round((loaded / total) * 100);
+            
+            // Update progress elements
+            document.querySelector('.progress-percent').textContent = `${percent}%`;
+            document.querySelector('.progress-time').textContent = formatTime(remainingTime);
+            document.querySelector('.file-size').textContent = 
+                `${(loaded / 1048576).toFixed(1)}MB / ${(total / 1048576).toFixed(1)}MB`;
+            document.querySelector('.upload-speed').textContent = 
+                `${(speed / 1024).toFixed(1)}KB/s`;
+            
+            // Animate progress bar smoothly
+            const progressFill = document.querySelector('.progress-fill');
+            progressFill.style.transition = 'width 0.5s ease-out';
+            progressFill.style.width = `${percent}%`;
+        }
+
+        function cancelUpload() {
+            if (uploadXHR) {
+                uploadXHR.abort();
+                resetUploadProgress();
+            }
+        }
+
+        function resetUploadProgress() {
+            const progressFill = document.querySelector('.progress-fill');
+            progressFill.style.transition = 'none';
+            progressFill.style.width = '0%';
+            
+            document.querySelector('.upload-progress').style.display = 'none';
+            document.querySelector('.submit-btn').disabled = false;
+            document.querySelector('.submit-btn').textContent = 'Upload Document';
+            startTime = null;
+            lastLoaded = 0;
+        }
+
+        document.getElementById('upload-form').addEventListener('submit', function(e) {
             e.preventDefault();
             const formData = new FormData(e.target);
+            const fileInput = document.getElementById('file-upload');
+            const file = fileInput.files[0];
+            const maxSizeMB = 25;
 
-            try {
-                const response = await fetch('/upload', {
-                    method: 'POST',
-                    body: formData
-                });
-
-                const result = await response.json();
-                if (response.ok) {
-                    showSuccessMessage();
-                    document.getElementById('upload-modal').style.display = 'none';
-                    fetchDocuments();
-                } else {
-                    alert(`Error: ${result.error}`);
-                }
-            } catch (error) {
-                console.error('Upload failed:', error);
+            if (!file) {
+                alert('Please select a file first!');
+                return;
             }
+
+            if (file.size > maxSizeMB * 1024 * 1024) {
+                document.getElementById('file-preview').innerHTML = `
+                    <div class="file-size-error">
+                        File too large! Maximum allowed: ${maxSizeMB}MB
+                    </div>
+                `;
+                return;
+            }
+
+            const uploadProgress = document.querySelector('.upload-progress');
+            const submitBtn = document.querySelector('#upload-form .submit-btn');
+
+            // Reset previous state
+            resetUploadProgress();
+            
+            // Initialize progress tracking
+            startTime = Date.now();
+            lastLoaded = 0;
+            uploadProgress.style.display = 'block';
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Uploading...';
+
+            uploadXHR = new XMLHttpRequest();
+            
+            uploadXHR.upload.addEventListener('progress', function(e) {
+                requestAnimationFrame(() => updateProgress(e));
+            });
+
+            uploadXHR.onreadystatechange = function() {
+                if (uploadXHR.readyState === XMLHttpRequest.DONE) {
+                    if (uploadXHR.status === 201) {
+                        showSuccessMessage();
+                        document.getElementById('upload-modal').style.display = 'none';
+                        fetchDocuments();
+                    } else if (uploadXHR.status !== 0) { // Ignore aborted requests
+                        alert(`Error: ${JSON.parse(uploadXHR.responseText).error}`);
+                    }
+                    resetUploadProgress();
+                }
+            };
+
+            uploadXHR.onerror = function() {
+                resetUploadProgress();
+                alert('Upload failed. Please check your connection and try again.');
+            };
+
+            uploadXHR.open('POST', '/upload');
+            uploadXHR.send(formData);
         });
 
         // Show Success Message
