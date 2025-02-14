@@ -13,11 +13,6 @@ import os
 import ssl
 import requests
 from flask_cors import CORS
-import serverless_http
-
-
-handler = serverless_http.WsgiMiddleware(app)
-
 
 
 load_dotenv()
