@@ -13,6 +13,10 @@ import os
 import ssl
 import requests
 from flask_cors import CORS
+import serverless_http
+
+
+handler = serverless_http.WsgiMiddleware(app)
 
 
 
@@ -23,7 +27,8 @@ CORS(app)
 
 app.config['CACHE_TYPE'] = 'simple' 
 cache = Cache(app)
-
+app.config['MAX_CONTENT_LENGTH'] = 25*1024*1024
+app.config['UPLOAD_BUFFER_SIZE'] = 8192
 limiter = Limiter(
     get_remote_address,
     app=app,
@@ -228,4 +233,4 @@ def view_file():
 
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000)
