@@ -1,5 +1,5 @@
-Flask==2.0.2
-Werkzeug==2.0.2
+Flask==2.0.3
+Werkzeug==2.0.3
 Flask-PyMongo==2.3.0
 pymongo[srv]==4.6.1
 dnspython==2.4.2
@@ -9,4 +9,4 @@ flask-caching==1.10.1
 flask-limiter==3.5.0
 requests==2.32.3
 flask-cors==5.0.0
-serverless-http==3.0.2
+gunicorn==21.2.0
