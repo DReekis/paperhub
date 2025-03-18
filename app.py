@@ -38,8 +38,8 @@ client = MongoClient(
     MONGO_URI,
     server_api=ServerApi('1'),
     tls=True,
-    tlsAllowInvalidCertificates=True,  # Skip certificate validation
-    tlsCAFile=ssl.get_default_verify_paths().cafile  # Explicitly set CA file path
+    tlsAllowInvalidCertificates=True,  
+    tlsCAFile=ssl.get_default_verify_paths().cafile  
 )
 
 db = client["paperhub"]
@@ -62,7 +62,7 @@ def index():
     return render_template('index.html')
 
 @app.route('/static/<path:filename>')
-@cache.cached(timeout=86400)  # Cache assets for 1 day
+@cache.cached(timeout=86400) 
 def cached_static(filename):
     return send_from_directory('static', filename)
 
@@ -100,7 +100,7 @@ def upload_file():
         # Prepare data for MongoDB
         data["file_url"] = original_url
         data["download_url"] = download_url
-        data["tags"] = [tag.strip() for tag in data.get("tags_attachment", "").split(",") if tag.strip()]  # Convert tags to a list
+        data["tags"] = [tag.strip() for tag in data.get("tags_attachment", "").split(",") if tag.strip()] 
 
         # Insert into the appropriate MongoDB collection
         collection = notes_collection if data["type"].lower() == "notes" else questions_collection
